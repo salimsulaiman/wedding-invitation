@@ -19,7 +19,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -33,20 +33,29 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $login = $this->input('login');
+
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'username';
+
+        if (! Auth::attempt([
+            $field => $login,
+            'password' => $this->password,
+        ], $this->boolean('remember'))) {
+
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => 'Email atau password yang Anda masukkan salah.',
+                'login' => 'Email/Username atau password yang Anda masukkan salah.',
             ]);
         }
 
-        // Cek status akun, khusus customer yang bisa di-suspend admin
         if (! Auth::user()->is_active) {
             Auth::logout();
 
             throw ValidationException::withMessages([
-                'email' => 'Akun Anda sudah dinonaktifkan. Silakan hubungi admin.',
+                'login' => 'Akun Anda sudah dinonaktifkan. Silakan hubungi admin.',
             ]);
         }
 
@@ -78,6 +87,8 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(
+            Str::lower($this->string('login')) . '|' . $this->ip()
+        );
     }
 }

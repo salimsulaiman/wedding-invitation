@@ -112,7 +112,7 @@ const destroy = (user) => {
 
                             <td class="px-5 py-4">
                                 <span
-                                    class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700"
+                                    class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold text-slate-700"
                                 >
                                     {{ user.username }}
                                 </span>

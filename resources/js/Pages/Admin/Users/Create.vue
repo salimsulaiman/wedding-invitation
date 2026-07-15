@@ -1,9 +1,9 @@
 <script setup>
 import { useFormatters } from '@/composables/useFormatters'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
-import { Head, Link, useForm, usePage, router } from '@inertiajs/vue3'
-import { ArrowLeft, Package } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
+import { ArrowLeft, Package, CheckCircle2 } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
 
 defineOptions({ layout: AdminLayout })
 
@@ -26,39 +26,53 @@ const page = usePage()
 
 const account = computed(() => page.props.flash.account)
 
-const copyAccount = async () => {
-    await navigator.clipboard.writeText(
-`Nama      : ${account.value.name}
-Username  : ${account.value.username}
-Password  : ${account.value.password}`
-    )
+const showAccountModal = ref(false)
+const copied = ref(false)
 
-    alert('Informasi login berhasil disalin.')
+watch(account, (value) => {
+    if (value) {
+        showAccountModal.value = true
+        copied.value = false
+    }
+}, { immediate: true })
+
+const loginInfoText = computed(() => {
+    if (!account.value) return ''
+    return `Halo ${account.value.name}, berikut informasi login akun undangan digital Anda:\n\nUsername: ${account.value.username}\nPassword: ${account.value.password}\n\nSilakan login dan segera ganti password Anda demi keamanan.`
+})
+
+const copyAccount = async () => {
+    try {
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(loginInfoText.value)
+        } else {
+            const textarea = document.createElement('textarea')
+            textarea.value = loginInfoText.value
+            document.body.appendChild(textarea)
+            textarea.select()
+            document.execCommand('copy')
+            document.body.removeChild(textarea)
+        }
+
+        copied.value = true
+        setTimeout(() => copied.value = false, 2000)
+    } catch (e) {
+        console.error(e)
+    }
 }
 
 const sendWhatsapp = () => {
-    const phone = (form.phone ?? '')
-        .replace(/\D/g, '')
-        .replace(/^0/, '62')
-
-    const message =
-`Halo ${account.value.name},
-
-Akun Wedding Invitation Anda telah berhasil dibuat.
-
-Username : ${account.value.username}
-Password : ${account.value.password}
-
-Silakan login dan segera ubah password Anda setelah berhasil masuk.`
-
-    window.open(
-        `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
-        '_blank'
-    )
+    if (!account.value?.phone) {
+        window.open(`https://wa.me/?text=${encodeURIComponent(loginInfoText.value)}`, '_blank')
+        return
+    }
+    let phone = account.value.phone.replace(/[^\d+]/g, '')
+    if (phone.startsWith('0')) phone = '62' + phone.slice(1)
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(loginInfoText.value)}`, '_blank')
 }
 
 const closeModal = () => {
-    router.get(route('admin.users.create'))
+    showAccountModal.value = false
 }
 
 const toggleCategory = (id) => {
@@ -206,76 +220,73 @@ const submit = () => {
                 </button>
             </div>
         </form>
-        <div
-            v-if="account"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-        >
-            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-
+    </div>
+    <div
+        v-if="showAccountModal && account"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+    >
+        <div class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+            <div class="flex items-start justify-between border-b border-slate-100 px-6 py-5">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                        ✅
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                        <CheckCircle2 class="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-900">Akun berhasil dibuat</h3>
+                        <p class="mt-0.5 text-sm text-slate-500">Simpan informasi login berikut.</p>
+                    </div>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600" @click="closeModal">
+                    <X class="h-4.5 w-4.5" />
+                </button>
+            </div>
+
+            <div class="px-6 py-5">
+                <div class="space-y-4 rounded-xl border border-pink-100 bg-pink-50/40 p-4">
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Nama</p>
+                        <p class="mt-0.5 text-sm font-medium text-slate-900">{{ account.name }}</p>
                     </div>
 
                     <div>
-                        <h3 class="text-lg font-semibold text-slate-900">
-                            Akun berhasil dibuat
-                        </h3>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Username</p>
+                        <p class="mt-0.5 font-mono text-sm font-semibold text-slate-900">{{ account.username }}</p>
+                    </div>
 
-                        <p class="text-sm text-slate-500">
-                            Simpan informasi login berikut.
-                        </p>
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-wide text-slate-400">Password</p>
+                        <p class="mt-0.5 font-mono text-sm font-semibold text-slate-900">{{ account.password }}</p>
                     </div>
                 </div>
 
-                <div class="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4">
+                <p class="mt-3 text-xs text-slate-400">
+                    Customer akan diminta mengganti password ini saat login pertama kali.
+                </p>
+            </div>
 
-                    <div>
-                        <p class="text-xs text-slate-500">Nama</p>
-                        <p class="font-medium">{{ account.name }}</p>
-                    </div>
+            <div class="flex flex-col gap-2 border-t border-slate-100 px-6 py-5">
+                <button
+                    class="flex items-center justify-center gap-1.5 rounded-lg bg-pink-600 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700"
+                    @click="copyAccount"
+                >
+                    <component :is="copied ? Check : Copy" class="h-4 w-4" />
+                    {{ copied ? 'Tersalin' : 'Salin Informasi Login' }}
+                </button>
 
-                    <div>
-                        <p class="text-xs text-slate-500">Username</p>
-                        <p class="font-mono font-semibold">
-                            {{ account.username }}
-                        </p>
-                    </div>
+                <button
+                    class="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                    @click="sendWhatsapp"
+                >
+                    <Send class="h-4 w-4" />
+                    Kirim ke WhatsApp
+                </button>
 
-                    <div>
-                        <p class="text-xs text-slate-500">Password</p>
-                        <p class="font-mono font-semibold">
-                            {{ account.password }}
-                        </p>
-                    </div>
-
-                </div>
-
-                <div class="mt-6 flex flex-col gap-2">
-
-                    <button
-                        @click="copyAccount"
-                        class="rounded-lg bg-pink-600 py-2.5 font-medium text-white hover:bg-pink-700"
-                    >
-                        Salin Informasi Login
-                    </button>
-
-                    <button
-                        @click="sendWhatsapp"
-                        class="rounded-lg bg-green-600 py-2.5 font-medium text-white hover:bg-green-700"
-                    >
-                        Kirim ke WhatsApp
-                    </button>
-
-                    <button
-                        @click="closeModal"
-                        class="rounded-lg border border-slate-300 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
-                    >
-                        Tutup
-                    </button>
-
-                </div>
-
+                <button
+                    class="rounded-lg border border-slate-300 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    @click="closeModal"
+                >
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
