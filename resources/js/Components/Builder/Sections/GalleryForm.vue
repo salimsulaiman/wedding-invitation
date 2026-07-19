@@ -114,7 +114,7 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="space-y-8">
-        <div>
+        <div v-if="allowCustomPhotos">
             <div class="flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-slate-900">Foto Cover</h3>
                 <span class="text-xs text-slate-400">
@@ -186,8 +186,16 @@ onBeforeUnmount(() => {
                 {{ coverForm.processing ? 'Mengunggah...' : `Unggah ${coverPreviews.length} Foto Cover` }}
             </button>
         </div>
+        <div v-else>
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-slate-900">Foto Cover</h3>
+            </div>
+            <p class="mt-1 text-sm text-slate-500">
+                Tema ini tidak memiliki akses untuk upload cover. Silahkan pilih tema premium untuk menikmati fitur gallery
+            </p>
+        </div>
 
-        <div class="border-t border-slate-100 pt-8">
+        <div v-if="allowCustomPhotos" class="border-t border-slate-100 pt-8">
             <h3 class="text-sm font-semibold text-slate-900">Galeri Foto</h3>
             <p class="mt-1 text-sm text-slate-500">Unggah beberapa foto sekaligus untuk galeri undangan.</p>
 
@@ -244,6 +252,15 @@ onBeforeUnmount(() => {
             >
                 {{ galleryForm.processing ? 'Mengunggah...' : `Unggah ${galleryPreviews.length} Foto` }}
             </button>
+        </div>
+
+        <div v-else>
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-slate-900">Galeri Foto</h3>
+            </div>
+            <p class="mt-1 text-sm text-slate-500">
+                Tema ini tidak memiliki akses untuk upload gallery. Silahkan pilih tema premium untuk menikmati fitur gallery
+            </p>
         </div>
     </div>
 </template>

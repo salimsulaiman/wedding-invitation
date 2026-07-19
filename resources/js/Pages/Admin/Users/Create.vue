@@ -73,6 +73,16 @@ const sendWhatsapp = () => {
 
 const closeModal = () => {
     showAccountModal.value = false
+
+    form.reset(
+        'name',
+        'email',
+        'phone',
+        'role',
+        'theme_category_ids'
+    )
+
+    form.clearErrors()
 }
 
 const toggleCategory = (id) => {
@@ -119,7 +129,7 @@ const submit = () => {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-700">Email</label>
+                    <label class="block text-sm font-medium text-slate-700">Email (Optional)</label>
                     <input
                         v-model="form.email"
                         type="email"

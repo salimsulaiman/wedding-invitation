@@ -51,21 +51,33 @@ const previewData = computed(() => ({
     <Head :title="`Builder - ${invitation.name}`" />
 
     <div class="flex h-full">
-        <div class="flex w-full flex-col overflow-y-auto border-r border-slate-200 bg-white lg:w-[440px] lg:shrink-0">
-            <nav class="flex shrink-0 gap-1 overflow-x-auto border-b border-slate-200 p-3 lg:flex-col lg:overflow-visible">
+        <div class="flex flex-1 flex-col overflow-hidden py-8 px-8">
+
+            <nav
+                class="scroll-hidden mb-6 flex items-center gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-4"
+            >
                 <button
                     v-for="item in navigation"
                     :key="item.key"
-                    class="flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition lg:w-full"
-                    :class="activeSection === item.key ? 'bg-pink-50 text-pink-700' : 'text-slate-600 hover:bg-slate-50'"
                     @click="activeSection = item.key"
+                    class="flex min-w-max items-center gap-2 rounded-xl px-5 py-3 text-sm font-medium transition-all duration-200"
+                    :class="
+                        activeSection === item.key
+                            ? 'bg-pink-600 text-white shadow-md'
+                            : 'text-slate-600 hover:bg-slate-100'
+                    "
                 >
-                    <component :is="item.icon" class="h-4 w-4" />
-                    {{ item.label }}
+                    <component
+                        :is="item.icon"
+                        class="h-4 w-4"
+                    />
+
+                    <span>{{ item.label }}</span>
                 </button>
             </nav>
 
-            <div class="flex-1 p-5">
+            <div class="flex-1 overflow-y-auto p-6 bg-white border border-slate-200 rounded-2xl scroll-hidden">
+
                 <CoupleEventForm
                     v-if="activeSection === 'couple-event'"
                     :invitation="invitation"
@@ -92,6 +104,7 @@ const previewData = computed(() => ({
                     v-else-if="activeSection === 'guests'"
                     :invitation="invitation"
                 />
+
             </div>
         </div>
 
