@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Carbon;
+use Carbon\CarbonInterface;
 
 #[Fillable([
     'user_id',
@@ -174,7 +174,13 @@ class Invitation extends Model
 
     public function isExpired(): bool
     {
-        return $this->expired_at !== null && $this->expired_at->isPast();
+        $expiredAt = $this->expired_at;
+
+        if (! $expiredAt instanceof CarbonInterface) {
+            return false;
+        }
+
+        return $expiredAt->isPast();
     }
 
     public function hasGuestLimit(): bool
