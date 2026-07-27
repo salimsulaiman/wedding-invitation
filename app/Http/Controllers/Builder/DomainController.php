@@ -41,6 +41,7 @@ class DomainController extends Controller
 
         $oldName = $invitation->domain?->name;
 
+        /** @var Domain $domain */
         $domain = $invitation->domain()->updateOrCreate([], [
             'name' => $validated['name'],
             'is_active' => true,

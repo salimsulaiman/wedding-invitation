@@ -25,6 +25,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'is_active',
     'published_at',
 ])]
+
+/**
+ * @property Carbon|null $expired_at
+ * @property int|null $max_guest
+ * @property bool $is_active
+ */
 class Invitation extends Model
 {
     use HasFactory, SoftDeletes;
@@ -67,6 +73,9 @@ class Invitation extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    /**
+     * @return HasOne<Domain, $this>
+     */
     public function domain(): HasOne
     {
         return $this->hasOne(Domain::class);
