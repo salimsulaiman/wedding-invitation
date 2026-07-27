@@ -23,15 +23,15 @@ class Domain extends Model
     }
 
     /**
-     * @return BelongsTo<Invitation, Domain>
+     * @return BelongsTo<Invitation, $this>
      */
     public function invitation(): BelongsTo
     {
         return $this->belongsTo(Invitation::class);
     }
-    
-    /**
-     * @return HasMany<DomainHistory, Domain>
+
+   /**
+     * @return HasMany<DomainHistory, $this>
      */
     public function histories(): HasMany
     {

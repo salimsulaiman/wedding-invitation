@@ -29,15 +29,12 @@ class Invitation extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected function casts(): array
-    {
-        return [
-            'max_guest' => 'integer',
-            'expired_at' => 'datetime',
-            'is_active' => 'boolean',
-            'published_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'max_guest' => 'integer',
+        'expired_at' => 'datetime',
+        'is_active' => 'boolean',
+        'published_at' => 'datetime',
+    ];
 
     /*
     |--------------------------------------------------------------------
@@ -63,7 +60,7 @@ class Invitation extends Model
 
 
     /**
-     * @return HasOne<Domain, Invitation>
+     * @return HasOne<Domain, $this>
      */
     public function domain(): HasOne
     {
