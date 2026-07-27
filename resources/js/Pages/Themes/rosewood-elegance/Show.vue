@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatters } from '@/composables/useFormatters'
+import { useFormatters } from '@/Composables/useFormatters'
 import { Head } from '@inertiajs/vue3'
 import { ref, computed } from 'vue'
 import {

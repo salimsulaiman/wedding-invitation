@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatters } from '@/composables/useFormatters'
+import { useFormatters } from '@/Composables/useFormatters'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ArrowLeft, Mail } from 'lucide-vue-next'

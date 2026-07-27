@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
 import { Plus, Search, Pencil, Trash2, Power } from 'lucide-vue-next'
 import debounce from 'lodash/debounce'
-import { useFormatters } from '@/composables/useFormatters'
+import { useFormatters } from '@/Composables/useFormatters'
 
 defineOptions({ layout: AdminLayout })
 

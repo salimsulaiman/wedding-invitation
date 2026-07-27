@@ -2,7 +2,7 @@
 import { useForm, router } from '@inertiajs/vue3'
 import { watch, ref, computed } from 'vue'
 import { Trash2, Plus, Pencil, X, ImagePlus } from 'lucide-vue-next'
-import { useFormatters } from '@/composables/useFormatters'
+import { useFormatters } from '@/Composables/useFormatters'
 
 const props = defineProps({
     invitation: Object,

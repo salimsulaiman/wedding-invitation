@@ -1,5 +1,5 @@
 <script setup>
-import { useFormatters } from '@/composables/useFormatters'
+import { useFormatters } from '@/Composables/useFormatters'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ArrowLeft, Power, Trash2, ExternalLink, Users, MessageSquare, Globe } from 'lucide-vue-next'
