@@ -61,6 +61,10 @@ class Invitation extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+
+    /**
+     * @return HasOne<Domain, Invitation>
+     */
     public function domain(): HasOne
     {
         return $this->hasOne(Domain::class);

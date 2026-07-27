@@ -80,7 +80,7 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function accessibleThemes()
+    public function accessibleThemes(): \Illuminate\Support\Collection
     {
         return Theme::whereIn(
             'theme_category_id',
