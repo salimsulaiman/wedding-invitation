@@ -21,6 +21,7 @@ class CheckInvitationActiveStatus
             abort(404, 'Undangan tidak ditemukan.');
         }
 
+        /** @var Invitation|null $invitation */
         $invitation = $domain->invitation;
 
         if (! $invitation || ! $invitation->is_active || $invitation->isExpired()) {

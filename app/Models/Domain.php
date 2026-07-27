@@ -22,7 +22,7 @@ class Domain extends Model
         ];
     }
 
-   /****
+    /**
      * @return BelongsTo<Invitation, $this>
      */
     public function invitation(): BelongsTo
