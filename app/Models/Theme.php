@@ -20,6 +20,9 @@ class Theme extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<ThemeCategory, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(ThemeCategory::class, 'theme_category_id');

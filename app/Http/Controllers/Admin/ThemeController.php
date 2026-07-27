@@ -29,8 +29,11 @@ class ThemeController extends Controller
         $categories = ThemeCategory::orderBy('name')
             ->withCount('usersWithAccess')
             ->get(['id', 'name', 'price', 'description', 'is_active'])
-            ->each(function ($category) {
-                $category->access_user_ids = $category->usersWithAccess()->pluck('users.id');
+            ->each(function (ThemeCategory $category) {
+                $category->setAttribute(
+                    'access_user_ids',
+                    $category->usersWithAccess()->pluck('users.id')
+                );
             });
 
         return Inertia::render('Admin/Themes/Index', [

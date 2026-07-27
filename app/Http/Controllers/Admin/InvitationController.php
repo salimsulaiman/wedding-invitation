@@ -37,7 +37,10 @@ class InvitationController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'email'])
             ->map(function (User $customer) {
-                $customer->accessible_theme_category_ids = $customer->accessibleThemeCategories()->pluck('theme_categories.id');
+                $customer->setAttribute(
+                    'accessible_theme_category_ids',
+                    $customer->accessibleThemeCategories()->pluck('theme_categories.id')
+                );
                 return $customer;
             });
 

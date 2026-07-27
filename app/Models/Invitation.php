@@ -29,12 +29,15 @@ class Invitation extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $casts = [
-        'max_guest' => 'integer',
-        'expired_at' => 'datetime',
-        'is_active' => 'boolean',
-        'published_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'max_guest' => 'integer',
+            'expired_at' => 'datetime',
+            'is_active' => 'boolean',
+            'published_at' => 'datetime',
+        ];
+    }
 
     /*
     |--------------------------------------------------------------------
@@ -42,11 +45,17 @@ class Invitation extends Model
     |--------------------------------------------------------------------
     */
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsTo<Theme, $this>
+     */
     public function theme(): BelongsTo
     {
         return $this->belongsTo(Theme::class);
@@ -58,10 +67,6 @@ class Invitation extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-
-    /**
-     * @return HasOne<Domain, $this>
-     */
     public function domain(): HasOne
     {
         return $this->hasOne(Domain::class);
@@ -127,6 +132,10 @@ class Invitation extends Model
         return $this->hasOne(InvitationGiftAddress::class);
     }
 
+
+    /**
+     * @return HasOne<InvitationMusic, $this>
+     */
     public function music(): HasOne
     {
         return $this->hasOne(InvitationMusic::class);
