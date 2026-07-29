@@ -1,3 +1,4 @@
+<!-- ThemeDesignForm.vue -->
 <script setup>
 import { useForm, router } from '@inertiajs/vue3'
 import { Music, Trash2, Check } from 'lucide-vue-next'

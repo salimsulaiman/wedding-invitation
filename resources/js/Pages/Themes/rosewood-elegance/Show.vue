@@ -1,3 +1,4 @@
+<!-- Themes/{component_key}/Show.vue -->
 <script setup>
 import { useFormatters } from '@/Composables/useFormatters'
 import { Head } from '@inertiajs/vue3'
@@ -21,6 +22,10 @@ const { formatLongDate, formatTime } = useFormatters()
 const props = defineProps({
     invitation: Object,
     guest: Object,
+    isPreview: {
+        type: Boolean,
+        default: false,
+    },
 })
 
 const audioEl = ref(null)
@@ -124,6 +129,7 @@ const copyAccount = (number) => copyAccountRaw(number, 'Nomor rekening disalin: 
 
 const { form, rsvpMessage: rsvpMsg, submit: submitWish } = useRsvpForm({
     guest: props.guest,
+    isPreview: props.isPreview,
     getDomainName: () => props.invitation?.domain?.name,
 })
 
@@ -149,9 +155,9 @@ useScrollSpy({
 
     <audio v-if="invitation" ref="audioEl" :src="musicSrc" loop></audio>
 
-    <div class="antialiased font-['Jost',sans-serif] bg-[#FAF7F1] text-[#1F3A5F] overflow-x-hidden pb-[100px]">
+    <div class="@container antialiased font-['Jost',sans-serif] bg-[#FAF7F1] text-[#1F3A5F] overflow-x-hidden pb-[100px]">
 
-        <div class="hidden lg:flex fixed inset-y-0 left-0 right-[420px] flex-col items-center justify-center bg-[#FAF7F1] overflow-hidden border-r border-[#B9CFE1]/30">
+        <div class="hidden @[1024px]:flex fixed inset-y-0 left-0 right-[420px] flex-col items-center justify-center bg-[#FAF7F1] overflow-hidden border-r border-[#B9CFE1]/30">
             <div class="absolute top-[-40px] left-[-40px] w-96 opacity-80 pointer-events-none [transform:scale(-1,-1)]">
                 <img :src="asset('corner1.png')" class="w-full animate-[pulseZoom_5.5s_ease-in-out_infinite]">
             </div>
@@ -180,11 +186,11 @@ useScrollSpy({
             </div>
         </div>
 
-        <div id="app-wrap" class="w-full lg:w-[420px] lg:ml-auto min-h-screen relative bg-[#FAF7F1] shadow-[-10px_0_30px_rgba(0,0,0,0.1)]">
+        <div id="app-wrap" class="w-full @[1024px]:w-[420px] @[1024px]:ml-auto min-h-screen relative bg-[#FAF7F1] shadow-[-10px_0_30px_rgba(0,0,0,0.1)]">
 
-            <div ref="petalsContainer" class="fixed inset-y-0 right-0 w-full lg:w-[420px] pointer-events-none z-40 hidden md:block overflow-hidden"></div>
+            <div ref="petalsContainer" class="fixed inset-y-0 right-0 w-full @[1024px]:w-[420px] pointer-events-none z-40 hidden md:block overflow-hidden"></div>
 
-            <div v-if="!opened" class="fixed top-0 bottom-0 right-0 w-full lg:w-[420px] z-50 bg-[#FAF7F1] overflow-y-auto overflow-x-hidden">
+            <div v-if="!opened" class="fixed top-0 bottom-0 right-0 w-full @[1024px]:w-[420px] z-50 bg-[#FAF7F1] overflow-y-auto overflow-x-hidden">
                 <div class="relative max-w-md w-full mx-auto min-h-full flex flex-col p-4">
                     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                         <div class="absolute w-[250px] pointer-events-none z-0 top-[-18px] left-[-18px] [transform:scale(-1,-1)]">
@@ -250,7 +256,7 @@ useScrollSpy({
                     <span>&#9835;</span>
                 </button>
 
-                <nav class="fixed left-1/2 -translate-x-1/2 bottom-[env(safe-area-inset-bottom,24px)] mb-6 z-50 w-[calc(100%-48px)] max-w-[360px] bg-white/75 backdrop-blur-md border border-white/50 rounded-full shadow-[0_12px_40px_rgba(31,58,95,0.15)] flex justify-around items-center px-2 py-3 lg:left-auto lg:right-[30px] lg:translate-x-0">
+                <nav class="fixed left-1/2 -translate-x-1/2 bottom-[env(safe-area-inset-bottom,24px)] mb-6 z-50 w-[calc(100%-48px)] max-w-[360px] bg-white/75 backdrop-blur-md border border-white/50 rounded-full shadow-[0_12px_40px_rgba(31,58,95,0.15)] flex justify-around items-center px-2 py-3 @[1024px]:left-auto @[1024px]:right-[30px] @[1024px]:translate-x-0">
                     <a href="#hero" data-nav class="flex flex-col items-center gap-1 w-11 transition-all text-[#1F3A5F]">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" class="w-5 h-5"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9h12v-9"/></svg>
                         <span class="text-[9px] tracking-[0.05em] uppercase font-medium">Home</span>

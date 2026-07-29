@@ -48,6 +48,7 @@ class InvitationPageController extends Controller
         return Inertia::render("Themes/{$componentKey}/Show", [
             'invitation' => $invitation,
             'guest' => $guest,
+            'isPreview' => false,
         ]);
     }
 }

@@ -30,6 +30,40 @@ class UserController extends Controller
         return $username;
     }
 
+    public function search(Request $request)
+    {
+        $keyword = trim((string) $request->input('q'));
+
+        $customers = User::query()
+            ->where('role', 'user')
+            ->where('is_active', true)
+            ->when($keyword !== '', function ($query) use ($keyword) {
+                $query->where(function ($query) use ($keyword) {
+                    $query
+                        ->where('username', 'like', "%{$keyword}%")
+                        ->orWhere('name', 'like', "%{$keyword}%")
+                        ->orWhere('email', 'like', "%{$keyword}%");
+                });
+            })
+            ->with('accessibleThemeCategories:id')
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(function (User $user) {
+                return [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'accessible_theme_category_ids' => $user->accessibleThemeCategories
+                        ->pluck('id')
+                        ->values(),
+                ];
+            });
+
+        return response()->json($customers);
+    }
+
     public function index(Request $request): Response
     {
         $users = User::query()

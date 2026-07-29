@@ -1,35 +1,92 @@
-<script setup>
+<script setup lang="ts">
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
 import { Search, Power, ExternalLink } from 'lucide-vue-next'
+import { route } from 'ziggy-js'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
 
 defineOptions({ layout: AdminLayout })
 
-const props = defineProps({
-    domains: Object,
-    filters: Object,
-})
+interface User {
+    id: number
+    name: string
+}
+
+interface Invitation {
+    id: number
+    name: string
+    user?: User | null
+}
+
+interface Domain {
+    id: number
+    name: string
+    is_active: boolean
+    invitation?: Invitation | null
+    activated_at: string | null
+}
+
+interface PaginationLink {
+    url: string | null
+    label: string
+    active: boolean
+}
+
+interface PaginationData<T> {
+    data: T[]
+    links: PaginationLink[]
+    current_page: number
+    last_page: number
+    total: number
+    per_page: number
+}
+
+interface Filters {
+    search?: string
+    status?: string
+}
+
+const props = defineProps<{
+    domains: PaginationData<Domain>
+    filters: Filters
+}>()
 
 const { formatDate } = useFormatters()
 
-const search = ref(props.filters.search ?? '')
-const status = ref(props.filters.status ?? '')
+const search = ref<string>(props.filters.search ?? '')
+const status = ref<string>(props.filters.status ?? '')
 
-watch([search, status], debounce(([searchValue, statusValue]) => {
-    router.get(route('admin.domains.index'), { search: searchValue, status: statusValue }, {
-        preserveState: true,
-        replace: true,
-    })
-}, 350))
+watch(
+    [search, status],
+    debounce(([searchValue, statusValue]: [string, string]) => {
+        router.get(
+            route('admin.domains.index'),
+            {
+                search: searchValue,
+                status: statusValue,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        )
+    }, 350),
+)
 
-const toggle = (domain) => {
+const toggle = (domain: Domain): void => {
     const action = domain.is_active ? 'menonaktifkan' : 'mengaktifkan'
+
     if (confirm(`Yakin ingin ${action} domain "${domain.name}"?`)) {
-        router.patch(route('admin.domains.toggle', domain.id), {}, { preserveScroll: true })
+        router.patch(
+            route('admin.domains.toggle', domain.id),
+            {},
+            {
+                preserveScroll: true,
+            },
+        )
     }
 }
 </script>

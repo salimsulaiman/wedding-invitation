@@ -1,48 +1,109 @@
-<script setup>
+<script setup lang="ts">
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
 import { Search, Users, MessageSquare } from 'lucide-vue-next'
+import { route } from 'ziggy-js'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
 
 defineOptions({ layout: AdminLayout })
 
-const props = defineProps({
-    guests: Object,
-    wishes: Object,
-    invitations: Array,
-    filters: Object,
-    activeTab: String,
-})
+interface Invitation {
+    id: number
+    name: string
+}
+
+interface Guest {
+    id: number
+    name: string
+    phone: string | null
+    group: string | null
+    quota: number
+    is_sent: boolean
+    opened_at: string | null
+    invitation?: Invitation | null
+}
+
+type Attendance = 'hadir' | 'tidak_hadir' | 'ragu'
+
+interface Wish {
+    id: number
+    name: string
+    message: string
+    attendance: Attendance | null
+    created_at: string
+    invitation?: Invitation | null
+}
+
+interface PaginationLink {
+    url: string | null
+    label: string
+    active: boolean
+}
+
+interface PaginationData<T> {
+    data: T[]
+    links: PaginationLink[]
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+}
+
+interface Filters {
+    search?: string
+    invitation_id?: number | string
+}
+
+const attendanceLabel = {
+    hadir: {
+        text: 'Hadir',
+        class: 'bg-emerald-50 text-emerald-700',
+    },
+    tidak_hadir: {
+        text: 'Tidak Hadir',
+        class: 'bg-red-50 text-red-600',
+    },
+    ragu: {
+        text: 'Ragu-ragu',
+        class: 'bg-amber-50 text-amber-700',
+    },
+} as const
+
+const props = defineProps<{
+    guests: PaginationData<Guest>
+    wishes: PaginationData<Wish>
+    invitations: Invitation[]
+    filters: Filters
+    activeTab: 'guests' | 'wishes'
+}>()
 
 const { formatDate, formatDateTime } = useFormatters()
 
-const attendanceLabel = {
-    hadir: { text: 'Hadir', class: 'bg-emerald-50 text-emerald-700' },
-    tidak_hadir: { text: 'Tidak Hadir', class: 'bg-red-50 text-red-600' },
-    ragu: { text: 'Ragu-ragu', class: 'bg-amber-50 text-amber-700' },
-}
+const tab = ref<'guests' | 'wishes'>(props.activeTab)
+const search = ref<string>(props.filters.search ?? '')
+const invitationId = ref<number | string>(props.filters.invitation_id ?? '')
 
-const tab = ref(props.activeTab)
-const search = ref(props.filters.search ?? '')
-const invitationId = ref(props.filters.invitation_id ?? '')
-
-const applyFilters = () => {
-    router.get(route('admin.guests.index'), {
-        tab: tab.value,
-        search: search.value,
-        invitation_id: invitationId.value,
-    }, {
-        preserveState: true,
-        replace: true,
-    })
+const applyFilters = (): void => {
+    router.get(
+        route('admin.guests.index'),
+        {
+            tab: tab.value,
+            search: search.value,
+            invitation_id: invitationId.value,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        },
+    )
 }
 
 watch([search, invitationId], debounce(applyFilters, 350))
 
-const switchTab = (value) => {
+const switchTab = (value: 'guests' | 'wishes'): void => {
     tab.value = value
     applyFilters()
 }

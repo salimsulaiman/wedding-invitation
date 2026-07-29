@@ -15,6 +15,7 @@ Route::middleware(['auth', 'invitation.owner'])
     ->group(function () {
         Route::get('/', [BuilderController::class, 'index'])->name('index');
         Route::get('close', [BuilderController::class, 'close'])->name('close'); // redirect balik ke dashboard sesuai role
+        Route::get('preview', [BuilderController::class, 'preview'])->name('preview');
 
         // Mempelai & Acara
         Route::put('couple-event', [CoupleEventController::class, 'update'])->name('couple-event.update');

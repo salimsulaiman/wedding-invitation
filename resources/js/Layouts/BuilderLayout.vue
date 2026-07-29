@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3'
 import { X, Users, Palette } from 'lucide-vue-next'
 import { computed } from 'vue'
+import { route } from 'ziggy-js'
 
 const props = defineProps({
     invitation: {

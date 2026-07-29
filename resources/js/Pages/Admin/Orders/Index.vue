@@ -1,20 +1,28 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
+import SearchSelect from '@/Components/Admin/SearchSelect.vue'
 import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { Plus, Search, X } from 'lucide-vue-next'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
+import { useCustomerSearch } from '@/Composables/useCustomerSearch'
 
 defineOptions({ layout: AdminLayout })
 
 const props = defineProps({
     orders: Object,
-    customers: Array,
     themeCategories: Array,
     filters: Object,
 })
+
+const {
+    customers,
+    loading,
+    search: searchCustomer,
+    fetchCustomers,
+} = useCustomerSearch()
 
 const { formatCurrency, formatDate } = useFormatters()
 
@@ -52,6 +60,10 @@ const onCategoryChange = () => {
     }
 }
 
+const selectedCustomer = computed(() =>
+    customers.value.find(customer => customer.id === form.user_id),
+)
+
 const submit = () => {
     form.post(route('admin.orders.store'), {
         preserveScroll: true,
@@ -61,6 +73,19 @@ const submit = () => {
         },
     })
 }
+
+const customerOptions = computed(() =>
+    customers.value.map(customer => ({
+        id: customer.id,
+        title: customer.username,
+        subtitle: customer.email
+            ? `${customer.name} • ${customer.email}`
+            : customer.name,
+    })),
+)
+onMounted(() => {
+    void fetchCustomers()
+})
 </script>
 
 <template>
@@ -167,15 +192,14 @@ const submit = () => {
             <form class="space-y-4 p-5" @submit.prevent="submit">
                 <div>
                     <label class="block text-xs font-medium text-slate-600">Customer</label>
-                    <select
+                    <SearchSelect
                         v-model="form.user_id"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                    >
-                        <option value="" disabled>Pilih customer</option>
-                        <option v-for="customer in customers" :key="customer.id" :value="customer.id">
-                            {{ customer.name }} ({{ customer.email }})
-                        </option>
-                    </select>
+                        :options="customerOptions"
+                        :loading="loading"
+                        placeholder="Cari username customer..."
+                        @search="searchCustomer"
+                        class="mt-1"
+                    />
                     <p v-if="form.errors.user_id" class="mt-1 text-xs text-red-600">{{ form.errors.user_id }}</p>
                 </div>
 

@@ -1,17 +1,16 @@
 <script setup>
 import { useForm, router } from '@inertiajs/vue3'
-import { watch, ref, computed } from 'vue'
+import { ref, computed } from 'vue'
 import { Trash2, Plus, Pencil, X, ImagePlus } from 'lucide-vue-next'
 import { useFormatters } from '@/Composables/useFormatters'
 
 const props = defineProps({
     invitation: Object,
-    live: Object,
 })
 
 const allowCustomPhotos = computed(() => props.invitation.theme?.category?.allow_custom_photos ?? true)
 
-const {formatDate} = useFormatters()
+const { formatDate } = useFormatters()
 
 const groom = props.invitation.couples?.find((c) => c.type === 'groom') ?? {}
 const bride = props.invitation.couples?.find((c) => c.type === 'bride') ?? {}
@@ -51,16 +50,6 @@ const form = useForm({
         photo: null,
     },
 })
-
-watch(form, () => {
-    props.live.name = form.name
-    props.live.quote_text = form.quote_text
-    props.live.quote_source = form.quote_source
-    props.live.akad = { ...form.akad }
-    props.live.resepsi = { ...form.resepsi }
-    props.live.groom = { ...form.groom }
-    props.live.bride = { ...form.bride }
-}, { deep: true, immediate: true })
 
 const submit = () => {
     form.put(route('builder.couple-event.update', props.invitation.id), {

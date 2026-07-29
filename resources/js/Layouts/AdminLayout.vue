@@ -1,11 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { Link, usePage, router } from '@inertiajs/vue3'
 import { ref } from 'vue'
 import {
     LayoutDashboard,
     Users,
     Palette,
-    Layers,
     ShoppingBag,
     Mail,
     Globe,
@@ -18,7 +17,7 @@ import {
 import { route } from 'ziggy-js'
 import FlashMessage from '@/Components/Admin/FlashMessage.vue'
 
-const current = (name) => route().current(name)
+const current = (name:string) => route().current(name)
 
 defineProps({
     title: {
@@ -115,7 +114,7 @@ const logout = () => {
             <nav class="space-y-1 px-3 py-4">
                 <Link
                     v-for="item in navigation"
-                    :key="item.href"
+                    :key="item.route"
                     :href="item.url"
                     class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
                     :class="

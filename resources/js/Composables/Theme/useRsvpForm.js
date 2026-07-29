@@ -6,16 +6,18 @@ import { useForm } from '@inertiajs/vue3'
  *
  * @param {object} options
  * @param {{name?: string, slug?: string} | null} options.guest
+ * @param {boolean} [options.isPreview] - true kalau di-render lewat BuilderController::preview
  * @param {() => string | null} options.getDomainName - function agar tetap reaktif terhadap props
  * @param {string} [options.routeName]
  *
  * @example
  * const { form, rsvpMessage, submit } = useRsvpForm({
  *     guest: props.guest,
+ *     isPreview: props.isPreview,
  *     getDomainName: () => props.invitation?.domain?.name,
  * })
  */
-export function useRsvpForm({ guest, getDomainName, routeName = 'public.invitation.wishes.store' }) {
+export function useRsvpForm({ guest, isPreview = false, getDomainName, routeName = 'public.invitation.wishes.store' }) {
     const rsvpMessage = ref('')
 
     const form = useForm({
@@ -26,6 +28,14 @@ export function useRsvpForm({ guest, getDomainName, routeName = 'public.invitati
     })
 
     const submit = () => {
+        // Mode preview builder: dikirim eksplisit lewat props isPreview dari controller.
+        // Jangan kirim RSVP sungguhan, cukup tampilkan pesan simulasi.
+        if (isPreview) {
+            rsvpMessage.value = 'Mode preview — ucapan tidak benar-benar terkirim.'
+            setTimeout(() => (rsvpMessage.value = ''), 3000)
+            return
+        }
+
         const domainName = getDomainName()
 
         if (!domainName) {

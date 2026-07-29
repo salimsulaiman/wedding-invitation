@@ -14,7 +14,7 @@ class BuilderController extends Controller
     public function index(Invitation $invitation): Response
     {
         $invitation->load([
-            'theme:id,name,theme_category_id,thumbnail',
+            'theme:id,name,theme_category_id,thumbnail,component_key',
             'theme.category:id,name,allow_custom_photos',
             'theme.category:id,name',
             'domain',
@@ -34,7 +34,7 @@ class BuilderController extends Controller
         $availableThemes = Theme::whereIn('theme_category_id', $accessibleCategoryIds)
             ->where('is_active', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'theme_category_id', 'thumbnail']);
+            ->get(['id', 'name', 'theme_category_id', 'thumbnail', 'component_key']);
 
         return Inertia::render('Builder/Index', [
             'invitation' => $invitation,
@@ -47,5 +47,29 @@ class BuilderController extends Controller
         return auth()->user()->isAdmin()
             ? redirect()->route('admin.invitations.index')
             : redirect()->route('user.invitations.index');
+    }
+
+    public function preview(Invitation $invitation): Response
+    {
+        abort_unless($invitation->theme, 404, 'Tema belum dipilih untuk undangan ini.');
+
+        $invitation->load([
+            'theme',
+            'couples',
+            'events',
+            'galleries',
+            'coverPhotos',
+            'music',
+            'loveStories' => fn ($q) => $q->orderBy('order'),
+            'accounts',
+            'giftAddress',
+            'domain',
+        ]);
+
+        return Inertia::render("Themes/{$invitation->theme->component_key}/Show", [
+            'invitation' => $invitation,
+            'guest' => null,
+            'isPreview' => true,
+        ]);
     }
 }

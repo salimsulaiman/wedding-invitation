@@ -19,6 +19,8 @@ Route::middleware(['auth', 'admin'])
 
         // Kelola akun user/customer
         Route::resource('users', UserController::class)->except('show');
+        Route::get('users/search', [UserController::class, 'search'])
+            ->name('users.search');
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive'])
             ->name('users.toggle-active');
 
