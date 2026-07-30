@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Signal, Wifi, BatteryFull, RefreshCw } from 'lucide-vue-next'
+import { RefreshCw } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
+import { route } from 'ziggy-js'
 
 const props = defineProps<{
     invitationId: number | string
@@ -16,8 +17,45 @@ const previewUrl = computed(() => {
     return `${base}?v=${encodeURIComponent(v)}`
 })
 
+/**
+ * Sembunyikan scrollbar native di dalam dokumen iframe supaya tidak
+ * memakan lebar layout ("layar" HP tetap penuh), tapi konten tetap
+ * bisa di-scroll normal (wheel/drag/touch).
+ *
+ * Hanya berjalan kalau iframe same-origin. Kalau beda origin,
+ * contentDocument akan melempar error dan kita diamkan saja.
+ */
+function hideIframeScrollbar() {
+    try {
+        const doc = iframeRef.value?.contentDocument
+        if (!doc) return
+
+        const styleId = 'preview-hide-scrollbar'
+        if (doc.getElementById(styleId)) return
+
+        const style = doc.createElement('style')
+        style.id = styleId
+        style.textContent = `
+            html, body {
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none; /* IE/Edge lama */
+            }
+            html::-webkit-scrollbar,
+            body::-webkit-scrollbar {
+                width: 0;
+                height: 0;
+                display: none; /* Chrome, Safari, Edge baru */
+            }
+        `
+        doc.head?.appendChild(style)
+    } catch {
+        // Cross-origin iframe, contentDocument tidak bisa diakses - abaikan.
+    }
+}
+
 function onIframeLoad() {
     isLoading.value = false
+    hideIframeScrollbar()
 }
 
 function reload() {

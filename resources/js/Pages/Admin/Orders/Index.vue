@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
 import SearchSelect from '@/Components/Admin/SearchSelect.vue'
@@ -8,14 +8,54 @@ import { Plus, Search, X } from 'lucide-vue-next'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
 import { useCustomerSearch } from '@/Composables/useCustomerSearch'
+import CustomSelect from '@/Components/General/CustomSelect.vue'
+import DaterangeFilter from '@/Components/General/DaterangeFilter.vue'
+import {route} from 'ziggy-js'
 
 defineOptions({ layout: AdminLayout })
 
-const props = defineProps({
-    orders: Object,
-    themeCategories: Array,
-    filters: Object,
-})
+interface User {
+    id: number
+    name: string
+    username: string
+    email: string | null
+}
+
+interface ThemeCategory {
+    id: number
+    name: string
+    price: number
+}
+
+interface Order {
+    id: number
+    user: User | null
+    theme_category: ThemeCategory | null
+    price: number
+    status: 'pending' | 'paid' | 'cancelled' | 'completed'
+    ordered_at: string
+}
+
+interface PaginatedOrders {
+    data: Order[]
+    links: unknown[]
+    current_page: number
+    last_page: number
+    total: number
+}
+
+interface Filters {
+    search?: string
+    status?: string
+    date_from?: string
+    date_to?: string
+}
+
+const props = defineProps<{
+    orders: PaginatedOrders
+    themeCategories: ThemeCategory[]
+    filters: Filters
+}>()
 
 const {
     customers,
@@ -25,6 +65,9 @@ const {
 } = useCustomerSearch()
 
 const { formatCurrency, formatDate } = useFormatters()
+
+const dateFrom = ref<string>(props.filters.date_from ?? '')
+const dateTo = ref<string>(props.filters.date_to ?? '')
 
 const statusLabel = {
     pending: { text: 'Menunggu', class: 'bg-amber-50 text-amber-700' },
@@ -36,18 +79,33 @@ const statusLabel = {
 const search = ref(props.filters.search ?? '')
 const status = ref(props.filters.status ?? '')
 
-watch([search, status], debounce(([searchValue, statusValue]) => {
-    router.get(route('admin.orders.index'), { search: searchValue, status: statusValue }, {
-        preserveState: true,
-        replace: true,
-    })
-}, 350))
+const applyFilters = (): void => {
+    router.get(
+        route('admin.orders.index'),
+        {
+            search: search.value,
+            status: status.value,
+            date_from: dateFrom.value,
+            date_to: dateTo.value,
+        },
+        { preserveState: true, replace: true },
+    )
+}
+
+watch([search, status, dateFrom, dateTo], debounce(applyFilters, 350))
 
 const createModalOpen = ref(false)
 
+const closeModal = () => {
+    createModalOpen.value = false
+    form.reset()
+    form.clearErrors()
+    form.ordered_at = new Date().toISOString().slice(0, 10)
+}
+
 const form = useForm({
     user_id: '',
-    theme_category_id: '',
+    theme_category_id: null as number | null,
     price: 0,
     notes: '',
     ordered_at: new Date().toISOString().slice(0, 10),
@@ -55,21 +113,21 @@ const form = useForm({
 
 const onCategoryChange = () => {
     const category = props.themeCategories.find((c) => c.id === form.theme_category_id)
+
     if (category) {
         form.price = category.price
     }
 }
 
-const selectedCustomer = computed(() =>
-    customers.value.find(customer => customer.id === form.user_id),
-)
+// const selectedCustomer = computed(() =>
+//     customers.value.find(customer => customer.id === form.user_id),
+// )
 
 const submit = () => {
     form.post(route('admin.orders.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            createModalOpen.value = false
-            form.reset()
+            closeModal()
         },
     })
 }
@@ -83,6 +141,7 @@ const customerOptions = computed(() =>
             : customer.name,
     })),
 )
+
 onMounted(() => {
     void fetchCustomers()
 })
@@ -117,16 +176,22 @@ onMounted(() => {
                         class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     />
                 </div>
-                <select
+
+                <CustomSelect
                     v-model="status"
-                    class="rounded-lg border border-slate-300 py-2 px-3 text-sm text-slate-700 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                >
-                    <option value="">Semua Status</option>
-                    <option value="pending">Menunggu</option>
-                    <option value="paid">Lunas</option>
-                    <option value="completed">Selesai</option>
-                    <option value="cancelled">Batal</option>
-                </select>
+                    :options="[
+                        { value: 'pending', label: 'Menunggu' },
+                        { value: 'paid', label: 'Lunas' },
+                        { value: 'completed', label: 'Selesai' },
+                        { value: 'cancelled', label: 'Batal' },
+                    ]"
+                    all-label="Semua Status"
+                />
+
+                <DaterangeFilter
+                    v-model:from="dateFrom"
+                    v-model:to="dateTo"
+                />
             </div>
 
             <div class="overflow-x-auto">
@@ -184,7 +249,7 @@ onMounted(() => {
         <div class="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl bg-white">
             <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
                 <h3 class="text-sm font-semibold text-slate-900">Catat Pesanan Baru</h3>
-                <button class="text-slate-400 hover:text-slate-600" @click="createModalOpen = false">
+                <button class="text-slate-400 hover:text-slate-600" @click="closeModal">
                     <X class="h-4.5 w-4.5" />
                 </button>
             </div>

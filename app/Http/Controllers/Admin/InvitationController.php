@@ -108,6 +108,43 @@ class InvitationController extends Controller
         ]);
     }
 
+    public function edit(Invitation $invitation): Response
+    {
+        $invitation->load('user');
+    
+        $customer = $invitation->user;
+    
+        return Inertia::render('Admin/Invitations/Edit', [
+            'invitation' => [
+                'id' => $invitation->id,
+                'name' => $invitation->name,
+                'max_guest' => $invitation->max_guest,
+                'expired_at' => optional($invitation->expired_at)->format('Y-m-d'),
+            ],
+            'customer' => [
+                'id' => $customer->id,
+                'username' => $customer->username,
+                'name' => $customer->name,
+                'email' => $customer->email,
+            ],
+        ]);
+    }
+    
+    public function update(Request $request, Invitation $invitation): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'max_guest' => ['nullable', 'integer', 'min:1'],
+            'expired_at' => ['nullable', 'date'],
+        ]);
+    
+        $invitation->update($validated);
+    
+        return redirect()
+            ->route('admin.invitations.index')
+            ->with('success', 'Undangan berhasil diperbarui.');
+    }
+
     public function destroy(Invitation $invitation): RedirectResponse
     {
         $invitation->delete();

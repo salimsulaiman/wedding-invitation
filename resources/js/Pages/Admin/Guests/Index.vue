@@ -3,38 +3,24 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
-import { Search, Users, MessageSquare } from 'lucide-vue-next'
+import { Search, Users, MessageSquare, ChevronRight } from 'lucide-vue-next'
 import { route } from 'ziggy-js'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
 
 defineOptions({ layout: AdminLayout })
 
+interface User {
+    username: string
+}
+
 interface Invitation {
     id: number
     name: string
-}
-
-interface Guest {
-    id: number
-    name: string
-    phone: string | null
-    group: string | null
-    quota: number
-    is_sent: boolean
-    opened_at: string | null
-    invitation?: Invitation | null
-}
-
-type Attendance = 'hadir' | 'tidak_hadir' | 'ragu'
-
-interface Wish {
-    id: number
-    name: string
-    message: string
-    attendance: Attendance | null
+    user: User
     created_at: string
-    invitation?: Invitation | null
+    guests_count: number
+    wishes_count: number
 }
 
 interface PaginationLink {
@@ -54,46 +40,21 @@ interface PaginationData<T> {
 
 interface Filters {
     search?: string
-    invitation_id?: number | string
 }
 
-const attendanceLabel = {
-    hadir: {
-        text: 'Hadir',
-        class: 'bg-emerald-50 text-emerald-700',
-    },
-    tidak_hadir: {
-        text: 'Tidak Hadir',
-        class: 'bg-red-50 text-red-600',
-    },
-    ragu: {
-        text: 'Ragu-ragu',
-        class: 'bg-amber-50 text-amber-700',
-    },
-} as const
-
 const props = defineProps<{
-    guests: PaginationData<Guest>
-    wishes: PaginationData<Wish>
-    invitations: Invitation[]
+    invitations: PaginationData<Invitation>
     filters: Filters
-    activeTab: 'guests' | 'wishes'
 }>()
 
-const { formatDate, formatDateTime } = useFormatters()
+const { formatDate } = useFormatters()
 
-const tab = ref<'guests' | 'wishes'>(props.activeTab)
 const search = ref<string>(props.filters.search ?? '')
-const invitationId = ref<number | string>(props.filters.invitation_id ?? '')
 
 const applyFilters = (): void => {
     router.get(
         route('admin.guests.index'),
-        {
-            tab: tab.value,
-            search: search.value,
-            invitation_id: invitationId.value,
-        },
+        { search: search.value },
         {
             preserveState: true,
             replace: true,
@@ -101,12 +62,7 @@ const applyFilters = (): void => {
     )
 }
 
-watch([search, invitationId], debounce(applyFilters, 350))
-
-const switchTab = (value: 'guests' | 'wishes'): void => {
-    tab.value = value
-    applyFilters()
-}
+watch(search, debounce(applyFilters, 350))
 </script>
 
 <template>
@@ -115,121 +71,60 @@ const switchTab = (value: 'guests' | 'wishes'): void => {
     <div class="space-y-6">
         <div>
             <h2 class="text-lg font-semibold text-slate-900">Tamu &amp; Ucapan</h2>
-            <p class="mt-1 text-sm text-slate-500">Rekap tamu dan ucapan dari semua undangan.</p>
+            <p class="mt-1 text-sm text-slate-500">Pilih undangan untuk melihat rekap tamu dan ucapannya.</p>
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white">
-            <!-- Tabs -->
-            <div class="flex border-b border-slate-200 px-4">
-                <button
-                    class="flex items-center gap-1.5 border-b-2 px-4 py-3.5 text-sm font-medium transition"
-                    :class="tab === 'guests' ? 'border-pink-600 text-pink-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
-                    @click="switchTab('guests')"
-                >
-                    <Users class="h-4 w-4" />
-                    Daftar Tamu
-                </button>
-                <button
-                    class="flex items-center gap-1.5 border-b-2 px-4 py-3.5 text-sm font-medium transition"
-                    :class="tab === 'wishes' ? 'border-pink-600 text-pink-600' : 'border-transparent text-slate-500 hover:text-slate-700'"
-                    @click="switchTab('wishes')"
-                >
-                    <MessageSquare class="h-4 w-4" />
-                    Ucapan
-                </button>
-            </div>
+        <div class="relative">
+            <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+                v-model="search"
+                type="text"
+                placeholder="Cari nama undangan..."
+                class="w-full max-w-md rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+            />
+        </div>
 
-            <!-- Filter -->
-            <div class="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center">
-                <div class="relative flex-1">
-                    <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                        v-model="search"
-                        type="text"
-                        placeholder="Cari nama..."
-                        class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                    />
-                </div>
-                <select
-                    v-model="invitationId"
-                    class="rounded-lg border border-slate-300 py-2 px-3 text-sm text-slate-700 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                >
-                    <option value="">Semua Undangan</option>
-                    <option v-for="invitation in invitations" :key="invitation.id" :value="invitation.id">
+        <div
+            v-if="invitations.data.length === 0"
+            class="rounded-xl border border-slate-200 bg-white px-5 py-16 text-center text-sm text-slate-400"
+        >
+            Belum ada undangan.
+        </div>
+
+        <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <Link
+                v-for="invitation in invitations.data"
+                :key="invitation.id"
+                :href="route('admin.guests.show', invitation.id)"
+                class="group flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 transition hover:border-pink-300"
+            >
+                <div>
+                    <p class="font-semibold text-slate-900 transition group-hover:text-pink-600">
                         {{ invitation.name }}
-                    </option>
-                </select>
-            </div>
-
-            <!-- Tab: Daftar Tamu -->
-            <div v-if="tab === 'guests'" class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-200 text-xs font-medium uppercase tracking-wide text-slate-400">
-                            <th class="px-5 py-3">Nama Tamu</th>
-                            <th class="px-5 py-3">Undangan</th>
-                            <th class="px-5 py-3">Grup</th>
-                            <th class="px-5 py-3">Kuota</th>
-                            <th class="px-5 py-3">Status</th>
-                            <th class="px-5 py-3">Dibuka</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <tr v-if="guests.data.length === 0">
-                            <td colspan="6" class="px-5 py-10 text-center text-sm text-slate-400">
-                                Belum ada data tamu.
-                            </td>
-                        </tr>
-                        <tr v-for="guest in guests.data" :key="guest.id" class="transition hover:bg-slate-50">
-                            <td class="px-5 py-3.5">
-                                <p class="font-medium text-slate-900">{{ guest.name }}</p>
-                                <p v-if="guest.phone" class="text-xs text-slate-500">{{ guest.phone }}</p>
-                            </td>
-                            <td class="px-5 py-3.5 text-slate-600">{{ guest.invitation?.name }}</td>
-                            <td class="px-5 py-3.5 text-slate-500">{{ guest.group ?? '-' }}</td>
-                            <td class="px-5 py-3.5 text-slate-500">{{ guest.quota }}</td>
-                            <td class="px-5 py-3.5">
-                                <span
-                                    class="rounded-full px-2.5 py-1 text-xs font-medium"
-                                    :class="guest.is_sent ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'"
-                                >
-                                    {{ guest.is_sent ? 'Terkirim' : 'Belum Kirim' }}
-                                </span>
-                            </td>
-                            <td class="px-5 py-3.5 text-slate-500">
-                                {{ guest.opened_at ? formatDateTime(guest.opened_at) : '-' }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <Pagination :links="guests.links" />
-            </div>
-
-            <!-- Tab: Ucapan -->
-            <div v-if="tab === 'wishes'" class="divide-y divide-slate-100">
-                <div v-if="wishes.data.length === 0" class="px-5 py-10 text-center text-sm text-slate-400">
-                    Belum ada ucapan masuk.
+                    </p>
+                    <p class="mt-1 text-xs text-slate-400">Dibuat {{ formatDate(invitation.created_at) }}</p>
+                    <p class="mt-1 text-xs text-slate-700">{{ invitation.user.username }}</p>
                 </div>
-                <div v-for="wish in wishes.data" :key="wish.id" class="px-5 py-4">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-slate-900">{{ wish.name }}</p>
-                            <p class="text-xs text-slate-400">{{ wish.invitation?.name }} · {{ formatDate(wish.created_at) }}</p>
-                        </div>
-                        <span
-                            v-if="wish.attendance"
-                            class="rounded-full px-2.5 py-1 text-xs font-medium"
-                            :class="attendanceLabel[wish.attendance]?.class"
-                        >
-                            {{ attendanceLabel[wish.attendance]?.text }}
+
+                <div class="mt-4 flex items-center justify-between">
+                    <div class="flex items-center gap-4 text-sm text-slate-500">
+                        <span class="flex items-center gap-1.5">
+                            <Users class="h-4 w-4 text-slate-400" />
+                            {{ invitation.guests_count }} tamu
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <MessageSquare class="h-4 w-4 text-slate-400" />
+                            {{ invitation.wishes_count }} ucapan
                         </span>
                     </div>
-                    <p class="mt-2 text-sm text-slate-600">{{ wish.message }}</p>
-                </div>
 
-                <Pagination :links="wishes.links" />
-            </div>
+                    <ChevronRight
+                        class="h-4 w-4 text-slate-300 transition group-hover:text-pink-500"
+                    />
+                </div>
+            </Link>
         </div>
+
+        <Pagination :links="invitations.links" />
     </div>
 </template>

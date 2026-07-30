@@ -82,12 +82,17 @@ class ThemeController extends Controller
             if ($theme->thumbnail) {
                 Storage::disk('public')->delete($theme->thumbnail);
             }
+
             $validated['thumbnail'] = $request->file('thumbnail')->store('themes', 'public');
+        } else {
+            unset($validated['thumbnail']);
         }
 
         $theme->update($validated);
 
-        return redirect()->route('admin.themes.index')->with('success', 'Tema berhasil diperbarui.');
+        return redirect()
+            ->route('admin.themes.index')
+            ->with('success', 'Tema berhasil diperbarui.');
     }
 
     public function destroy(Theme $theme): RedirectResponse

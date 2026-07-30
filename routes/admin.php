@@ -47,6 +47,8 @@ Route::middleware(['auth', 'admin'])
         Route::get('invitations/create', [InvitationController::class, 'create'])->name('invitations.create');
         Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
         Route::get('invitations/{invitation}', [InvitationController::class, 'show'])->name('invitations.show');
+        Route::get('invitations/{invitation}/edit', [InvitationController::class, 'edit'])->name('invitations.edit');
+        Route::put('invitations/{invitation}', [InvitationController::class, 'update'])->name('invitations.update');
         Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
         Route::patch('invitations/{invitation}/toggle-active', [InvitationController::class, 'toggleActive'])
             ->name('invitations.toggle-active');
@@ -57,4 +59,5 @@ Route::middleware(['auth', 'admin'])
 
         // Rekap tamu & pesan lintas semua undangan
         Route::get('guests', [GuestController::class, 'index'])->name('guests.index');
+        Route::get('guests/{invitation}', [GuestController::class, 'show'])->name('guests.show');
     });

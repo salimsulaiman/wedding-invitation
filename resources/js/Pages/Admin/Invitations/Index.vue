@@ -3,9 +3,10 @@ import AdminLayout from '@/Layouts/AdminLayout.vue'
 import Pagination from '@/Components/Admin/Pagination.vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import { ref, watch } from 'vue'
-import { Plus, Search, Power, Trash2, Users, MessageSquare } from 'lucide-vue-next'
+import { Plus, Search, Power, Trash2, Users, MessageSquare, Pencil } from 'lucide-vue-next'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
+import CustomSelect from '@/Components/General/CustomSelect.vue'
 
 defineOptions({ layout: AdminLayout })
 
@@ -72,15 +73,15 @@ const destroy = (invitation) => {
                         class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     />
                 </div>
-                <select
+                <CustomSelect
                     v-model="status"
-                    class="rounded-lg border border-slate-300 py-2 px-3 text-sm text-slate-700 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                >
-                    <option value="">Semua Status</option>
-                    <option value="draft">Draf</option>
-                    <option value="published">Terbit</option>
-                    <option value="inactive">Nonaktif</option>
-                </select>
+                    :options="[
+                        { value: 'draft', label: 'Draf' },
+                        { value: 'published', label: 'Terbit' },
+                        { value: 'inactive', label: 'Nonaktif' },
+                    ]"
+                    all-label="Semua Status"
+                />
             </div>
 
             <div class="overflow-x-auto">
@@ -140,6 +141,13 @@ const destroy = (invitation) => {
                                     >
                                         <Power class="h-4 w-4" />
                                     </button>
+                                     <Link
+                                        :href="route('admin.invitations.edit', invitation.id)"
+                                        title="Edit"
+                                        class="rounded-lg p-2 text-slate-400 transition hover:bg-blue-50 hover:text-blue-600"
+                                    >
+                                        <Pencil class="h-4 w-4" />
+                                    </Link>
                                     <button
                                         title="Hapus"
                                         class="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"

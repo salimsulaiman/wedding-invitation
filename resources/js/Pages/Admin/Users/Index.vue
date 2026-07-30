@@ -6,6 +6,7 @@ import { ref, watch } from 'vue'
 import { Plus, Search, Pencil, Trash2, Power } from 'lucide-vue-next'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
+import CustomSelect from '@/Components/General/CustomSelect.vue'
 
 defineOptions({ layout: AdminLayout })
 
@@ -67,14 +68,14 @@ const destroy = (user) => {
                         class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     />
                 </div>
-                <select
+                <CustomSelect
                     v-model="role"
-                    class="rounded-lg border border-slate-300 py-2 px-3 text-sm text-slate-700 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                >
-                    <option value="">Semua Role</option>
-                    <option value="admin">Admin</option>
-                    <option value="user">Customer</option>
-                </select>
+                    :options="[
+                        { value: 'admin', label: 'Admin' },
+                        { value: 'user', label: 'Customer' },
+                    ]"
+                    all-label="Semua Role"
+                />
             </div>
 
             <!-- Table -->

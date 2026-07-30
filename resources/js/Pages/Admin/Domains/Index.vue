@@ -7,6 +7,7 @@ import { Search, Power, ExternalLink } from 'lucide-vue-next'
 import { route } from 'ziggy-js'
 import debounce from 'lodash/debounce'
 import { useFormatters } from '@/Composables/useFormatters'
+import CustomSelect from '@/Components/General/CustomSelect.vue'
 
 defineOptions({ layout: AdminLayout })
 
@@ -111,14 +112,14 @@ const toggle = (domain: Domain): void => {
                         class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
                     />
                 </div>
-                <select
+                <CustomSelect
                     v-model="status"
-                    class="rounded-lg border border-slate-300 py-2 px-3 text-sm text-slate-700 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                >
-                    <option value="">Semua Status</option>
-                    <option value="active">Aktif</option>
-                    <option value="inactive">Nonaktif</option>
-                </select>
+                    :options="[
+                        { value: 'active', label: 'Aktif' },
+                        { value: 'inactive', label: 'Nonaktif' },
+                    ]"
+                    all-label="Semua Status"
+                />
             </div>
 
             <div class="overflow-x-auto">
