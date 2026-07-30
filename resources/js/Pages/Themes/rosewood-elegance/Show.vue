@@ -425,7 +425,7 @@ useScrollSpy({
                             </div>
                         </div>
 
-                        <a :href="calendarHref" target="_blank" class="reveal opacity-0 translate-y-6 transition-all duration-[900ms] bg-[#1F3A5F] text-[#FAF7F1] hover:bg-[#5F84A8] hover:-translate-y-0.5 transition-colors inline-block mt-12 font-['Cormorant_Garamond',serif] tracking-widest text-sm uppercase px-8 py-3 rounded-full">Simpan Tanggal</a>
+                        <a :href="calendarHref" target="_blank" class="reveal opacity-0 translate-y-6 hover:translate-y-5 transition-all duration-[900ms] bg-[#1F3A5F] text-[#FAF7F1] hover:bg-[#5F84A8]  inline-block mt-12 font-['Cormorant_Garamond',serif] tracking-widest text-sm uppercase px-8 py-3 rounded-full">Simpan Tanggal</a>
                     </div>
                 </section>
 
