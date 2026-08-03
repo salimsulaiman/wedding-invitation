@@ -21,10 +21,10 @@ class DashboardController extends Controller
                 ->get(['id', 'user_id', 'theme_id', 'name', 'status', 'is_active', 'expired_at', 'created_at']),
 
             'recentOrders' => $user->orders()
-                ->with('theme:id,name')
+                ->with('themeCategory:id,name')
                 ->latest()
                 ->take(5)
-                ->get(['id', 'theme_id', 'price', 'status', 'ordered_at', 'created_at']),
+                ->get(['id', 'theme_category_id', 'price', 'status', 'ordered_at', 'created_at']),
         ]);
     }
 }

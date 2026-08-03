@@ -2,7 +2,8 @@
 import UserLayout from '@/Layouts/UserLayout.vue'
 import { useFormatters } from '@/Composables/useFormatters'
 import { Head, Link } from '@inertiajs/vue3'
-import { Mail, Users, MessageSquare, Plus, ShoppingBag } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Mail, Users, MessageSquare, Plus, Search } from 'lucide-vue-next'
 import { route } from 'ziggy-js'
 
 defineOptions({ layout: UserLayout })
@@ -11,11 +12,6 @@ interface Theme {
     id: number
     name: string
     thumbnail: string | null
-}
-
-interface ThemeCategory {
-    id: number
-    name: string
 }
 
 interface Invitation {
@@ -30,27 +26,19 @@ interface Invitation {
     wishes_count: number
 }
 
-interface Order {
-    id: number
-    price: number
-    status: 'pending' | 'paid' | 'cancelled' | 'completed'
-    created_at: string
-    theme_category: ThemeCategory | null
-}
-
 const props = defineProps<{
     invitations: Invitation[]
-    recentOrders: Order[]
 }>()
 
-const { formatCurrency, formatDate } = useFormatters()
+const { formatDate } = useFormatters()
 
-const orderStatusLabel: Record<Order['status'], { text: string; class: string }> = {
-    pending: { text: 'Menunggu', class: 'bg-amber-50 text-amber-700' },
-    paid: { text: 'Lunas', class: 'bg-emerald-50 text-emerald-700' },
-    cancelled: { text: 'Batal', class: 'bg-red-50 text-red-600' },
-    completed: { text: 'Selesai', class: 'bg-emerald-50 text-emerald-700' },
-}
+const search = ref('')
+
+const filteredInvitations = computed(() => {
+    if (!search.value.trim()) return props.invitations
+    const keyword = search.value.toLowerCase()
+    return props.invitations.filter((invitation) => invitation.name.toLowerCase().includes(keyword))
+})
 
 const invitationStatus = (invitation: Invitation) => {
     if (!invitation.is_active) {
@@ -71,19 +59,25 @@ const invitationStatus = (invitation: Invitation) => {
 
 <template>
 
-    <Head title="Dashboard" />
+    <Head title="Undangan Saya" />
 
     <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900">Undangan Saya</h2>
-                <p class="mt-1 text-sm text-slate-500">Kelola undangan pernikahan digital Anda.</p>
+                <p class="mt-1 text-sm text-slate-500">Semua undangan pernikahan digital yang Anda buat.</p>
             </div>
             <Link :href="route('user.invitations.create')"
                 class="flex items-center gap-1.5 rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700">
                 <Plus class="h-4 w-4" />
                 Buat Undangan
             </Link>
+        </div>
+
+        <div v-if="invitations.length > 0" class="relative max-w-sm">
+            <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input v-model="search" type="text" placeholder="Cari nama undangan..."
+                class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30" />
         </div>
 
         <div v-if="invitations.length === 0"
@@ -98,8 +92,13 @@ const invitationStatus = (invitation: Invitation) => {
             </Link>
         </div>
 
+        <div v-else-if="filteredInvitations.length === 0"
+            class="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center text-sm text-slate-400">
+            Tidak ada undangan yang cocok dengan pencarian "{{ search }}".
+        </div>
+
         <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div v-for="invitation in invitations" :key="invitation.id"
+            <div v-for="invitation in filteredInvitations" :key="invitation.id"
                 class="overflow-hidden rounded-xl border border-slate-200 bg-white">
                 <div class="flex h-32 items-center justify-center bg-slate-100">
                     <img v-if="invitation.theme?.thumbnail" :src="`/storage/${invitation.theme.thumbnail}`"
@@ -139,38 +138,6 @@ const invitationStatus = (invitation: Invitation) => {
                         </Link>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="rounded-xl border border-slate-200 bg-white">
-            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                <div class="flex items-center gap-2">
-                    <ShoppingBag class="h-4 w-4 text-pink-600" />
-                    <h3 class="text-sm font-semibold text-slate-900">Riwayat Pesanan</h3>
-                </div>
-                <Link :href="route('user.orders.index')" class="text-xs font-medium text-pink-600 hover:underline">
-                    Lihat semua
-                </Link>
-            </div>
-            <div class="divide-y divide-slate-100">
-                <div v-if="recentOrders.length === 0" class="px-5 py-8 text-center text-sm text-slate-400">
-                    Belum ada riwayat pesanan.
-                </div>
-                <Link v-for="order in recentOrders" :key="order.id" :href="route('user.orders.show', order.id)"
-                    class="flex items-center justify-between px-5 py-3.5 transition hover:bg-slate-50">
-                    <div>
-                        <p class="text-sm font-medium text-slate-900">{{ order.theme_category?.name ?? 'Paket undangan'
-                        }}</p>
-                        <p class="mt-0.5 text-xs text-slate-500">{{ formatDate(order.created_at) }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm font-medium text-slate-900">{{ formatCurrency(order.price) }}</p>
-                        <span class="mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium"
-                            :class="orderStatusLabel[order.status]?.class">
-                            {{ orderStatusLabel[order.status]?.text }}
-                        </span>
-                    </div>
-                </Link>
             </div>
         </div>
     </div>

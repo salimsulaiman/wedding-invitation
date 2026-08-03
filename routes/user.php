@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\User\DashboardController;
-// use App\Http\Controllers\User\BankAccountController;
-// use App\Http\Controllers\User\InvitationController;
-// use App\Http\Controllers\User\OrderController;
+use App\Http\Controllers\User\InvitationController;
+use App\Http\Controllers\User\OrderController;
+use App\Http\Controllers\User\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'customer'])
@@ -12,16 +12,15 @@ Route::middleware(['auth', 'customer'])
     ->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-        // Undangan milik user sendiri
-        // Route::get('invitations', [InvitationController::class, 'index'])->name('invitations.index');
-        // Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
+        Route::get('invitations', [InvitationController::class, 'index'])->name('invitations.index');
+        Route::get('invitations/create', [InvitationController::class, 'create'])->name('invitations.create');
+        Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
+        Route::get('invitations/{invitation}', [InvitationController::class, 'show'])->name('invitations.show');
 
-        // // History pemesanan & masa aktif
-        // Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 
-        // // Rekening tersimpan di dashboard user
-        // Route::get('bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
-        // Route::post('bank-accounts', [BankAccountController::class, 'store'])->name('bank-accounts.store');
-        // Route::delete('bank-accounts/{bankAccount}', [BankAccountController::class, 'destroy'])
-        //     ->name('bank-accounts.destroy');
+        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     });
