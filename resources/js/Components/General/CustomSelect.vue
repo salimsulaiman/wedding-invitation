@@ -26,15 +26,21 @@ const props = defineProps({
         default: 'label',
     },
     // Label untuk opsi "semua" di baris paling atas
+    placeholder: {
+        type: String,
+        default: '',
+    },
+
+    includeAllOption: {
+        type: Boolean,
+        default: true,
+    },
+
     allLabel: {
         type: String,
         default: 'Semua',
     },
-    // Set false kalau tidak butuh opsi "semua"
-    showAllOption: {
-        type: Boolean,
-        default: true,
-    },
+
     emptyText: {
         type: String,
         default: 'Tidak ada data',
@@ -63,16 +69,31 @@ const normalizedOptions = computed(() =>
 )
 
 const allOptions = computed(() => {
-    const base = props.showAllOption
-        ? [{ value: '', label: props.allLabel }]
-        : []
+    const options = [...normalizedOptions.value]
 
-    return [...base, ...normalizedOptions.value]
+    if (props.includeAllOption) {
+        options.unshift({
+            value: '',
+            label: props.allLabel,
+        })
+    }
+
+    return options
 })
 
 const selected = computed(() =>
-    allOptions.value.find((option) => option.value === props.modelValue),
+    allOptions.value.find(
+        option => option.value === props.modelValue
+    )
 )
+
+const displayLabel = computed(() => {
+    if (selected.value) {
+        return selected.value.label
+    }
+
+    return props.placeholder
+})
 
 function toggle() {
     open.value = !open.value
@@ -133,10 +154,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
     <div ref="root" class="relative" @keydown="onKeydown">
         <button
             type="button"
-            class="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition hover:border-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30 sm:w-auto sm:min-w-40"
+            class="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition hover:border-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30 sm:min-w-40"
             @click="toggle"
         >
-            <span class="truncate">{{ selected?.label ?? allLabel }}</span>
+            <span class="truncate">{{ displayLabel  }}</span>
 
             <ChevronDown class="h-4 w-4 shrink-0 text-slate-400" />
         </button>
@@ -151,7 +172,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
         >
             <div
                 v-if="open"
-                class="absolute z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl sm:w-max"
+                class="absolute z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
             >
                 <div class="max-h-72 overflow-y-auto py-1">
                     <button

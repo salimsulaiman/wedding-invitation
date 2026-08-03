@@ -31,52 +31,61 @@ const sidebarOpen = ref(false)
 
 const navigation = [
     {
-        name: 'Dashboard',
-        route: 'admin.dashboard',
-        url: route('admin.dashboard'),
-        icon: LayoutDashboard,
+        label: 'Overview',
+        items: [
+            {
+                name: 'Dashboard',
+                route: 'admin.dashboard',
+                url: route('admin.dashboard'),
+                icon: LayoutDashboard,
+            },
+        ],
     },
     {
-        name: 'Pengguna',
-        route: 'admin.users.*',
-        url: route('admin.users.index'),
-        icon: Users,
+        label: 'Operasional',
+        items: [
+            {
+                name: 'Pengguna',
+                route: 'admin.users.*',
+                url: route('admin.users.index'),
+                icon: Users,
+            },
+            {
+                name: 'Pesanan',
+                route: 'admin.orders.*',
+                url: route('admin.orders.index'),
+                icon: ShoppingBag,
+            },
+            {
+                name: 'Undangan',
+                route: 'admin.invitations.*',
+                url: route('admin.invitations.index'),
+                icon: Mail,
+            },
+            {
+                name: 'Domain',
+                route: 'admin.domains.*',
+                url: route('admin.domains.index'),
+                icon: Globe,
+            },
+            {
+                name: 'Tamu & Ucapan',
+                route: 'admin.guests.*',
+                url: route('admin.guests.index'),
+                icon: MessageSquare,
+            },
+        ],
     },
-    // {
-    //     name: 'Kategori Tema',
-    //     route: 'admin.theme-categories.*',
-    //     url: route('admin.theme-categories.index'),
-    //     icon: Layers,
-    // },
     {
-        name: 'Tema',
-        route: 'admin.themes.*',
-        url: route('admin.themes.index'),
-        icon: Palette,
-    },
-    {
-        name: 'Pesanan',
-        route: 'admin.orders.*',
-        url: route('admin.orders.index'),
-        icon: ShoppingBag,
-    },
-    {
-        name: 'Undangan',
-        route: 'admin.invitations.*',
-        url: route('admin.invitations.index'),
-        icon: Mail,
-    },
-    {
-        name: 'Domain',
-        route: 'admin.domains.*',
-        url: route('admin.domains.index'),
-        icon: Globe,
-    },
-    {
-        name: 'Tamu & Ucapan',
-        route: 'admin.guests.*',
-        url: route('admin.guests.index'),
-        icon: MessageSquare,
+        label: 'Master Data',
+        items: [
+            {
+                name: 'Tema',
+                route: 'admin.themes.*',
+                url: route('admin.themes.index'),
+                icon: Palette,
+            },
+        ],
     },
 ]
 
@@ -111,21 +120,36 @@ const logout = () => {
                 </button>
             </div>
 
-            <nav class="space-y-1 px-3 py-4">
-                <Link
-                    v-for="item in navigation"
-                    :key="item.route"
-                    :href="item.url"
-                    class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
-                    :class="
-                        route().current(item.route)
-                            ? 'bg-pink-50 text-pink-700'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    "
+            <nav class="px-3 py-4">
+                <div
+                    v-for="group in navigation"
+                    :key="group.label"
+                    class="mb-6"
                 >
-                    <component :is="item.icon" class="h-4.5 w-4.5" />
-                    {{ item.name }}
-                </Link>
+                    <p
+                        v-if="group.label"
+                        class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400"
+                    >
+                        {{ group.label }}
+                    </p>
+
+                    <div class="space-y-1">
+                        <Link
+                            v-for="item in group.items"
+                            :key="item.route"
+                            :href="item.url"
+                            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition"
+                            :class="
+                                route().current(item.route)
+                                    ? 'bg-pink-50 text-pink-700'
+                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            "
+                        >
+                            <component :is="item.icon" class="h-4.5 w-4.5" />
+                            {{ item.name }}
+                        </Link>
+                    </div>
+                </div>
             </nav>
         </aside>
 

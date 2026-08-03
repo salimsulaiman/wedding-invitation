@@ -1,4 +1,5 @@
 <script setup>
+import CustomSelect from '@/Components/General/CustomSelect.vue'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ArrowLeft } from 'lucide-vue-next'
@@ -52,15 +53,15 @@ const submit = () => {
         <form class="space-y-5 rounded-xl border border-slate-200 bg-white p-6" @submit.prevent="submit">
             <div>
                 <label class="block text-sm font-medium text-slate-700">Jenis Tema</label>
-                <select
+               <CustomSelect
                     v-model="form.theme_category_id"
-                    class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                >
-                    <option value="" disabled>Pilih jenis tema</option>
-                    <option v-for="category in categories" :key="category.id" :value="category.id">
-                        {{ category.name }}
-                    </option>
-                </select>
+                    :options="categories"
+                    value-key="id"
+                    label-key="name"
+                    placeholder="Pilih jenis tema"
+                    :include-all-option="false"
+                    class="mt-1.5"
+                />
                 <p v-if="form.errors.theme_category_id" class="mt-1.5 text-sm text-red-600">{{ form.errors.theme_category_id }}</p>
             </div>
 

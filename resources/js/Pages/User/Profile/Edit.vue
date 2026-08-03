@@ -48,7 +48,7 @@ const submitPassword = () => {
 
     <Head title="Profil Saya" />
 
-    <div class="mx-auto max-w-2xl space-y-6">
+    <div class="max-w-2xl space-y-6">
         <div>
             <h2 class="text-lg font-semibold text-slate-900">Profil Saya</h2>
             <p class="mt-1 text-sm text-slate-500">Kelola informasi akun dan keamanan Anda.</p>

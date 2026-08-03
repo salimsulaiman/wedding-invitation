@@ -1,4 +1,5 @@
 <script setup>
+import CustomSelect from '@/Components/General/CustomSelect.vue'
 import { useFormatters } from '@/Composables/useFormatters'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
@@ -150,13 +151,15 @@ const submit = () => {
 
                 <div>
                     <label class="block text-sm font-medium text-slate-700">Role</label>
-                    <select
+                    <CustomSelect
                         v-model="form.role"
-                        class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                    >
-                        <option value="user">Customer</option>
-                        <option value="admin">Admin</option>
-                    </select>
+                        :options="[
+                            { value: 'user', label: 'Customer' },
+                            { value: 'admin', label: 'Admin' },
+                        ]"
+                        class="mt-1.5"
+                        :include-all-option="false"
+                    />
                 </div>
                 <div class="rounded-lg bg-blue-50 border border-blue-200 p-4">
                     <p class="text-sm font-medium text-blue-900">

@@ -74,7 +74,6 @@ const destroy = (user) => {
                         { value: 'admin', label: 'Admin' },
                         { value: 'user', label: 'Customer' },
                     ]"
-                    all-label="Semua Role"
                 />
             </div>
 

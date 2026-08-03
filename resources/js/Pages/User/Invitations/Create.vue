@@ -36,7 +36,7 @@ const submit = () => {
 
     <Head title="Buat Undangan" />
 
-    <div class="mx-auto max-w-2xl space-y-6">
+    <div class="max-w-2xl space-y-6">
         <div class="flex items-center gap-3">
             <Link :href="route('user.invitations.index')"
                 class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
