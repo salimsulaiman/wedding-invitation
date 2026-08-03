@@ -10,7 +10,7 @@ import { useFormatters } from '@/Composables/useFormatters'
 import { useCustomerSearch } from '@/Composables/useCustomerSearch'
 import CustomSelect from '@/Components/General/CustomSelect.vue'
 import DaterangeFilter from '@/Components/General/DaterangeFilter.vue'
-import {route} from 'ziggy-js'
+import { route } from 'ziggy-js'
 
 defineOptions({ layout: AdminLayout })
 
@@ -111,13 +111,16 @@ const form = useForm({
     ordered_at: new Date().toISOString().slice(0, 10),
 })
 
-const onCategoryChange = () => {
-    const category = props.themeCategories.find((c) => c.id === form.theme_category_id)
+watch(
+    () => form.theme_category_id,
+    (value) => {
+        const category = props.themeCategories.find(
+            category => category.id === value,
+        )
 
-    if (category) {
-        form.price = category.price
-    }
-}
+        form.price = category?.price ?? 0
+    },
+)
 
 // const selectedCustomer = computed(() =>
 //     customers.value.find(customer => customer.id === form.user_id),
@@ -148,6 +151,7 @@ onMounted(() => {
 </script>
 
 <template>
+
     <Head title="Pesanan" />
 
     <div class="space-y-6">
@@ -158,8 +162,7 @@ onMounted(() => {
             </div>
             <button
                 class="flex items-center gap-1.5 rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700"
-                @click="createModalOpen = true"
-            >
+                @click="createModalOpen = true">
                 <Plus class="h-4 w-4" />
                 Catat Pesanan
             </button>
@@ -168,36 +171,27 @@ onMounted(() => {
         <div class="rounded-xl border border-slate-200 bg-white">
             <div class="flex flex-col gap-3 border-b border-slate-200 p-4 sm:flex-row sm:items-center">
                 <div class="relative flex-1">
-                    <Search class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                        v-model="search"
-                        type="text"
-                        placeholder="Cari nama customer..."
-                        class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                    />
+                    <Search
+                        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input v-model="search" type="text" placeholder="Cari nama customer..."
+                        class="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30" />
                 </div>
 
-                <CustomSelect
-                    v-model="status"
-                    :options="[
-                        { value: 'pending', label: 'Menunggu' },
-                        { value: 'paid', label: 'Lunas' },
-                        { value: 'completed', label: 'Selesai' },
-                        { value: 'cancelled', label: 'Batal' },
-                    ]"
-                    all-label="Semua Status"
-                />
+                <CustomSelect v-model="status" :options="[
+                    { value: 'pending', label: 'Menunggu' },
+                    { value: 'paid', label: 'Lunas' },
+                    { value: 'completed', label: 'Selesai' },
+                    { value: 'cancelled', label: 'Batal' },
+                ]" all-label="Semua Status" />
 
-                <DaterangeFilter
-                    v-model:from="dateFrom"
-                    v-model:to="dateTo"
-                />
+                <DaterangeFilter v-model:from="dateFrom" v-model:to="dateTo" />
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead>
-                        <tr class="border-b border-slate-200 text-xs font-medium uppercase tracking-wide text-slate-400">
+                        <tr
+                            class="border-b border-slate-200 text-xs font-medium uppercase tracking-wide text-slate-400">
                             <th class="px-5 py-3">Customer</th>
                             <th class="px-5 py-3">Paket</th>
                             <th class="px-5 py-3">Harga</th>
@@ -220,19 +214,15 @@ onMounted(() => {
                             <td class="px-5 py-3.5 text-slate-600">{{ order.theme_category?.name ?? '-' }}</td>
                             <td class="px-5 py-3.5 font-medium text-slate-900">{{ formatCurrency(order.price) }}</td>
                             <td class="px-5 py-3.5">
-                                <span
-                                    class="rounded-full px-2.5 py-1 text-xs font-medium"
-                                    :class="statusLabel[order.status]?.class"
-                                >
+                                <span class="rounded-full px-2.5 py-1 text-xs font-medium"
+                                    :class="statusLabel[order.status]?.class">
                                     {{ statusLabel[order.status]?.text }}
                                 </span>
                             </td>
                             <td class="px-5 py-3.5 text-slate-500">{{ formatDate(order.ordered_at) }}</td>
                             <td class="px-5 py-3.5 text-right">
-                                <Link
-                                    :href="route('admin.orders.show', order.id)"
-                                    class="text-sm font-medium text-pink-600 hover:underline"
-                                >
+                                <Link :href="route('admin.orders.show', order.id)"
+                                    class="text-sm font-medium text-pink-600 hover:underline">
                                     Detail
                                 </Link>
                             </td>
@@ -257,67 +247,40 @@ onMounted(() => {
             <form class="space-y-4 p-5" @submit.prevent="submit">
                 <div>
                     <label class="block text-xs font-medium text-slate-600">Customer</label>
-                    <SearchSelect
-                        v-model="form.user_id"
-                        :options="customerOptions"
-                        :loading="loading"
-                        placeholder="Cari username customer..."
-                        @search="searchCustomer"
-                        class="mt-1"
-                    />
+                    <SearchSelect v-model="form.user_id" :options="customerOptions" :loading="loading"
+                        placeholder="Cari username customer..." @search="searchCustomer" class="mt-1" />
                     <p v-if="form.errors.user_id" class="mt-1 text-xs text-red-600">{{ form.errors.user_id }}</p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600">Paket</label>
-                    <select
-                        v-model="form.theme_category_id"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                        @change="onCategoryChange"
-                    >
-                        <option value="">Belum ditentukan</option>
-                        <option v-for="category in themeCategories" :key="category.id" :value="category.id">
-                            {{ category.name }}
-                        </option>
-                    </select>
+                    <CustomSelect v-model="form.theme_category_id" :options="themeCategories" value-key="id"
+                        label-key="name" placeholder="Pilih paket tema" :include-all-option="false" class="mt-1" />
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600">Harga</label>
-                    <input
-                        v-model.number="form.price"
-                        type="number"
-                        min="0"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                    />
+                    <input v-model.number="form.price" type="number" min="0"
+                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30" />
                     <p v-if="form.errors.price" class="mt-1 text-xs text-red-600">{{ form.errors.price }}</p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600">Tanggal Pesan</label>
-                    <input
-                        v-model="form.ordered_at"
-                        type="date"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                    />
+                    <input v-model="form.ordered_at" type="date"
+                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30" />
                     <p v-if="form.errors.ordered_at" class="mt-1 text-xs text-red-600">{{ form.errors.ordered_at }}</p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-slate-600">Catatan (opsional)</label>
-                    <textarea
-                        v-model="form.notes"
-                        rows="2"
+                    <textarea v-model="form.notes" rows="2"
                         placeholder="Cth: pesan via WA, minta tema custom warna emas"
-                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                    ></textarea>
+                        class="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"></textarea>
                 </div>
 
-                <button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="w-full rounded-lg bg-pink-600 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
-                >
+                <button type="submit" :disabled="form.processing"
+                    class="w-full rounded-lg bg-pink-600 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60">
                     Simpan Pesanan
                 </button>
             </form>

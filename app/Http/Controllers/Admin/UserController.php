@@ -3,18 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ThemeCategory;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-
     private function generateUsername(string $name): string
     {
         $base = Str::slug($name, '');
@@ -24,7 +22,7 @@ class UserController extends Controller
         }
 
         do {
-            $username = $base . random_int(100, 999);
+            $username = $base.random_int(100, 999);
         } while (User::where('username', $username)->exists());
 
         return $username;
@@ -45,21 +43,9 @@ class UserController extends Controller
                         ->orWhere('email', 'like', "%{$keyword}%");
                 });
             })
-            ->with('accessibleThemeCategories:id')
             ->latest()
             ->limit(10)
-            ->get()
-            ->map(function (User $user) {
-                return [
-                    'id' => $user->id,
-                    'username' => $user->username,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'accessible_theme_category_ids' => $user->accessibleThemeCategories
-                        ->pluck('id')
-                        ->values(),
-                ];
-            });
+            ->get(['id', 'username', 'name', 'email']);
 
         return response()->json($customers);
     }
@@ -89,11 +75,7 @@ class UserController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/Users/Create', [
-            'themeCategories' => ThemeCategory::where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name', 'price', 'description']),
-        ]);
+        return Inertia::render('Admin/Users/Create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -103,19 +85,9 @@ class UserController extends Controller
             'email' => ['nullable', 'email', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:20'],
             'role' => ['required', Rule::in(['admin', 'user'])],
-            'theme_category_ids' => ['nullable', 'array'],
-            'theme_category_ids.*' => ['exists:theme_categories,id'],
         ]);
 
-        $themeCategoryIds = $validated['theme_category_ids'] ?? [];
-        unset($validated['theme_category_ids']);
-
-        $plainPassword = Str::password(
-            length: 8,
-            letters: true,
-            numbers: true,
-            symbols: false
-        );
+        $plainPassword = Str::password(length: 8, letters: true, numbers: true, symbols: false);
 
         $validated['username'] = $this->generateUsername($validated['name']);
         $validated['password'] = $plainPassword;
@@ -123,42 +95,34 @@ class UserController extends Controller
 
         $user = User::create($validated);
 
-        if ($user->isUser() && count($themeCategoryIds) > 0) {
-            $user->accessibleThemeCategories()->sync(
-                collect($themeCategoryIds)->mapWithKeys(fn ($id) => [
-                    $id => [
-                        'granted_by' => auth()->id(),
-                        'granted_at' => now(),
-                    ],
-                ])
-            );
-        }
-
         return redirect()
             ->route('admin.users.create')
             ->with('account', [
                 'name' => $user->name,
                 'username' => $user->username,
                 'password' => $plainPassword,
+                'phone' => $user->phone,
             ]);
     }
 
     public function edit(User $user): Response
     {
+        $user->load(['accessibleThemeCategories' => function ($query) {
+            $query->withPivot(['source', 'order_id', 'granted_at']);
+        }]);
+
         return Inertia::render('Admin/Users/Edit', [
-            'user' => $user->only([
-                'id',
-                'name',
-                'username',
-                'email',
-                'phone',
-                'role',
-                'is_active',
-            ]),
-            'themeCategories' => ThemeCategory::where('is_active', true)
+            'user' => $user->only(['id', 'name', 'username', 'email', 'phone', 'role', 'is_active']),
+            'themeCategories' => \App\Models\ThemeCategory::where('is_active', true)
                 ->orderBy('name')
-                ->get(['id', 'name', 'price', 'description']),
-            'accessThemeCategoryIds' => $user->accessibleThemeCategories()->pluck('theme_categories.id'),
+                ->get(['id', 'name', 'price']),
+            'accessList' => $user->accessibleThemeCategories->map(fn ($category) => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'source' => $category->pivot->source,
+                'order_id' => $category->pivot->order_id,
+                'granted_at' => $category->pivot->granted_at,
+            ]),
         ]);
     }
 
@@ -167,26 +131,14 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => [
-                'required',
-                'string',
-                'max:50',
-                'alpha_dash',
+                'required', 'string', 'max:50', 'alpha_dash',
                 Rule::unique('users', 'username')->ignore($user->id),
             ],
-            'email' => [
-                'nullable',
-                'email',
-                Rule::unique('users', 'email')->ignore($user->id),
-            ],
+            'email' => ['nullable', 'email', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['nullable', 'string', 'min:8'],
             'role' => ['required', Rule::in(['admin', 'user'])],
-            'theme_category_ids' => ['nullable', 'array'],
-            'theme_category_ids.*' => ['exists:theme_categories,id'],
         ]);
-
-        $themeCategoryIds = $validated['theme_category_ids'] ?? [];
-        unset($validated['theme_category_ids']);
 
         if (empty($validated['password'])) {
             unset($validated['password']);
@@ -194,14 +146,7 @@ class UserController extends Controller
 
         $user->update($validated);
 
-        if ($user->isUser()) {
-            $user->accessibleThemeCategories()->sync(
-                collect($themeCategoryIds)->mapWithKeys(fn ($id) => [
-                    $id => ['granted_by' => auth()->id(), 'granted_at' => now()],
-                ])
-            );
-        } else {
-            // Kalau role diubah jadi admin, akses paket tidak relevan lagi
+        if (! $user->isUser()) {
             $user->accessibleThemeCategories()->detach();
         }
 

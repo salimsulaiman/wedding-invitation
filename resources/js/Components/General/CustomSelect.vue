@@ -4,7 +4,7 @@ import { ChevronDown, Check } from 'lucide-vue-next'
 
 const props = defineProps({
     modelValue: {
-        type: [String, Number],
+        type: [String, Number, null],
         default: '',
     },
     // Array bebas: bisa [{ value, label }] atau array object apa saja
@@ -41,6 +41,11 @@ const props = defineProps({
         default: 'Semua',
     },
 
+    topOption: {
+        type: Object,
+        default: null,
+    },
+
     emptyText: {
         type: String,
         default: 'Tidak ada data',
@@ -71,7 +76,9 @@ const normalizedOptions = computed(() =>
 const allOptions = computed(() => {
     const options = [...normalizedOptions.value]
 
-    if (props.includeAllOption) {
+    if (props.topOption) {
+        options.unshift(props.topOption)
+    } else if (props.includeAllOption) {
         options.unshift({
             value: '',
             label: props.allLabel,
@@ -152,52 +159,32 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 
 <template>
     <div ref="root" class="relative" @keydown="onKeydown">
-        <button
-            type="button"
+        <button type="button"
             class="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 transition hover:border-slate-400 focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30 sm:min-w-40"
-            @click="toggle"
-        >
-            <span class="truncate">{{ displayLabel  }}</span>
+            @click="toggle">
+            <span class="truncate">{{ displayLabel }}</span>
 
             <ChevronDown class="h-4 w-4 shrink-0 text-slate-400" />
         </button>
 
-        <Transition
-            enter-active-class="transition duration-150"
-            enter-from-class="opacity-0 scale-95"
-            enter-to-class="opacity-100 scale-100"
-            leave-active-class="transition duration-100"
-            leave-from-class="opacity-100 scale-100"
-            leave-to-class="opacity-0 scale-95"
-        >
-            <div
-                v-if="open"
-                class="absolute z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl"
-            >
+        <Transition enter-active-class="transition duration-150" enter-from-class="opacity-0 scale-95"
+            enter-to-class="opacity-100 scale-100" leave-active-class="transition duration-100"
+            leave-from-class="opacity-100 scale-100" leave-to-class="opacity-0 scale-95">
+            <div v-if="open"
+                class="absolute z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
                 <div class="max-h-72 overflow-y-auto py-1">
-                    <button
-                        v-for="(option, index) in allOptions"
-                        :key="option.value"
-                        type="button"
+                    <button v-for="(option, index) in allOptions" :key="option.value" type="button"
                         class="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition"
                         :class="[
                             index === activeIndex ? 'bg-pink-50' : 'hover:bg-slate-50',
                             option.value === modelValue ? 'font-medium text-pink-600' : 'text-slate-700',
-                        ]"
-                        @click="select(option)"
-                    >
+                        ]" @click="select(option)">
                         <span class="truncate">{{ option.label }}</span>
 
-                        <Check
-                            v-if="option.value === modelValue"
-                            class="h-4 w-4 shrink-0 text-pink-600"
-                        />
+                        <Check v-if="option.value === modelValue" class="h-4 w-4 shrink-0 text-pink-600" />
                     </button>
 
-                    <div
-                        v-if="!allOptions.length"
-                        class="py-8 text-center text-sm text-slate-400"
-                    >
+                    <div v-if="!allOptions.length" class="py-8 text-center text-sm text-slate-400">
                         {{ emptyText }}
                     </div>
                 </div>

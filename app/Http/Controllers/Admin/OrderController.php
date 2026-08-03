@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\ThemeCategory;
+use App\Models\ThemeCategoryUser;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,18 +18,16 @@ class OrderController extends Controller
     public function index(Request $request): Response
     {
         $orders = Order::query()
-            ->with(['user:id,name,email', 'themeCategory:id,name'])
+            ->with(['user:id,name,email,username', 'themeCategory:id,name'])
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->when($request->search, fn ($q) => $q->whereHas('user', fn ($u) => $u->where('name', 'like', "%{$request->search}%")))
-            ->when($request->date_from, fn ($q) => $q->whereDate('created_at', '>=', $request->date_from))
-            ->when($request->date_to, fn ($q) => $q->whereDate('created_at', '<=', $request->date_to))
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
         return Inertia::render('Admin/Orders/Index', [
             'orders' => $orders,
-            'customers' => User::where('role', 'user')->orderBy('name')->get(['id', 'name', 'email']),
+            'customers' => User::where('role', 'user')->orderBy('name')->get(['id', 'name', 'username', 'email']),
             'themeCategories' => ThemeCategory::where('is_active', true)->orderBy('name')->get(['id', 'name', 'price']),
             'filters' => $request->only('search', 'status'),
         ]);
@@ -70,10 +69,28 @@ class OrderController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $validated['handled_by'] = auth()->id();
+        $wasNotPaid = $order->status !== 'paid';
 
+        $validated['handled_by'] = auth()->id();
         $order->update($validated);
 
-        return back()->with('success', 'Pesanan berhasil diperbarui.');
+        if ($wasNotPaid && $validated['status'] === 'paid' && $order->theme_category_id) {
+            ThemeCategoryUser::firstOrCreate(
+                ['theme_category_id' => $order->theme_category_id, 'user_id' => $order->user_id],
+                [
+                    'granted_by' => auth()->id(),
+                    'granted_at' => now(),
+                    'source' => 'order',
+                    'order_id' => $order->id,
+                ]
+            );
+        }
+
+        $message = 'Pesanan berhasil diperbarui.';
+        if ($wasNotPaid && $validated['status'] === 'paid' && $order->theme_category_id) {
+            $message .= ' Akses paket otomatis dibuka untuk customer.';
+        }
+
+        return back()->with('success', $message);
     }
 }

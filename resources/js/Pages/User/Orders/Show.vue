@@ -1,3 +1,4 @@
+<!-- order show.vue -->
 <script setup lang="ts">
 import UserLayout from '@/Layouts/UserLayout.vue'
 import { useFormatters } from '@/Composables/useFormatters'
@@ -58,7 +59,7 @@ const statusLabel: Record<Order['status'], { text: string; class: string }> = {
             <div>
                 <h2 class="text-lg font-semibold text-slate-900">Detail Pesanan</h2>
                 <p class="mt-0.5 text-sm text-slate-500">Dipesan {{ formatDateTime(order.ordered_at ?? order.created_at)
-                    }}</p>
+                }}</p>
             </div>
         </div>
 

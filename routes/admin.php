@@ -31,8 +31,6 @@ Route::middleware(['auth', 'admin'])
         // Buka/tutup akses PAKET (kategori tema) untuk customer tertentu
         Route::post('theme-categories/{themeCategory}/access', [ThemeCategoryAccessController::class, 'store'])
             ->name('theme-categories.access.store');
-        Route::patch('theme-categories/{themeCategory}/access/{user}', [ThemeCategoryAccessController::class, 'update'])
-            ->name('theme-categories.access.update');
         Route::delete('theme-categories/{themeCategory}/access/{user}', [ThemeCategoryAccessController::class, 'destroy'])
             ->name('theme-categories.access.destroy');
 

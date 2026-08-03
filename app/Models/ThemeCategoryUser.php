@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'theme_category_id', 'granted_by', 'granted_at'])]
+#[Fillable(['user_id', 'theme_category_id', 'granted_by', 'granted_at', 'source', 'order_id'])]
 class ThemeCategoryUser extends Model
 {
     use HasFactory;
@@ -34,5 +34,10 @@ class ThemeCategoryUser extends Model
     public function grantedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'granted_by');
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 }

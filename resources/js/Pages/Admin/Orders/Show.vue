@@ -1,18 +1,63 @@
-<script setup>
+<!-- order show.vue -->
+<script setup lang="ts">
 import { useFormatters } from '@/Composables/useFormatters'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import { ArrowLeft, Mail } from 'lucide-vue-next'
+import { route } from 'ziggy-js'
 
 defineOptions({ layout: AdminLayout })
 
-const props = defineProps({
-    order: Object,
-})
+interface OrderUser {
+    id: number
+    name: string
+    email: string | null
+    phone: string | null
+}
+
+interface ThemeCategory {
+    id: number
+    name: string
+    price: number
+}
+
+interface InvitationRef {
+    id: number
+    name: string
+    status: string
+}
+
+interface HandledBy {
+    id: number
+    name: string
+}
+
+interface Order {
+    id: number
+    price: number
+    status: 'pending' | 'paid' | 'cancelled' | 'completed'
+    notes: string | null
+    created_at: string
+    updated_at: string
+    user: OrderUser | null
+    theme_category: ThemeCategory | null
+    invitation: InvitationRef | null
+    handled_by: HandledBy | null
+}
+
+interface OrderUpdateForm {
+    status: Order['status']
+    price: number
+    notes: string
+}
+
+const props = defineProps<{
+    order: Order
+}>()
 
 const { formatCurrency, formatDateTime } = useFormatters()
 
-const form = useForm({
+const form = useForm<OrderUpdateForm>({
     status: props.order.status,
     price: props.order.price,
     notes: props.order.notes ?? '',
@@ -26,11 +71,13 @@ const submit = () => {
 </script>
 
 <template>
+
     <Head title="Detail Pesanan" />
 
     <div class="max-w-3xl space-y-6">
         <div class="flex items-center gap-3">
-            <Link :href="route('admin.orders.index')" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+            <Link :href="route('admin.orders.index')"
+                class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
                 <ArrowLeft class="h-4 w-4" />
             </Link>
             <div>
@@ -67,10 +114,8 @@ const submit = () => {
                 <form class="space-y-5 rounded-xl border border-slate-200 bg-white p-6" @submit.prevent="submit">
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Status Pesanan</label>
-                        <select
-                            v-model="form.status"
-                            class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                        >
+                        <select v-model="form.status"
+                            class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30">
                             <option value="pending">Menunggu</option>
                             <option value="paid">Lunas</option>
                             <option value="completed">Selesai</option>
@@ -80,34 +125,25 @@ const submit = () => {
 
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Harga</label>
-                        <input
-                            v-model.number="form.price"
-                            type="number"
-                            min="0"
-                            class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                        />
+                        <input v-model.number="form.price" type="number" min="0"
+                            class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30" />
                         <p v-if="form.errors.price" class="mt-1.5 text-sm text-red-600">{{ form.errors.price }}</p>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-slate-700">Catatan</label>
-                        <textarea
-                            v-model="form.notes"
-                            rows="4"
-                            class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"
-                        ></textarea>
+                        <textarea v-model="form.notes" rows="4"
+                            class="mt-1.5 block w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30"></textarea>
                     </div>
 
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-5 text-xs text-slate-400">
+                    <div
+                        class="flex items-center justify-between border-t border-slate-100 pt-5 text-xs text-slate-400">
                         <span>Dicatat: {{ formatDateTime(order.created_at) }}</span>
                         <span>Terakhir diubah: {{ formatDateTime(order.updated_at) }}</span>
                     </div>
 
-                    <button
-                        type="submit"
-                        :disabled="form.processing"
-                        class="w-full rounded-lg bg-pink-600 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60"
-                    >
+                    <button type="submit" :disabled="form.processing"
+                        class="w-full rounded-lg bg-pink-600 py-2.5 text-sm font-semibold text-white transition hover:bg-pink-700 disabled:opacity-60">
                         Simpan Perubahan
                     </button>
                 </form>

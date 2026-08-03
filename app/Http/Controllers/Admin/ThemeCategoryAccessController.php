@@ -25,7 +25,11 @@ class ThemeCategoryAccessController extends Controller
 
         ThemeCategoryUser::firstOrCreate(
             ['theme_category_id' => $themeCategory->id, 'user_id' => $user->id],
-            ['granted_by' => auth()->id(), 'granted_at' => now()]
+            [
+                'granted_by' => auth()->id(),
+                'granted_at' => now(),
+                'source' => 'manual',
+            ]
         );
 
         return back()->with('success', "Paket \"{$themeCategory->name}\" dibuka untuk {$user->name}.");

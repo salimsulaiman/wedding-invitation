@@ -13,6 +13,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('theme_category_id')->constrained()->cascadeOnDelete();
             $table->foreignId('granted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->enum('source', ['order', 'manual'])->default('manual');
+            $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
             $table->timestamp('granted_at')->useCurrent();
             $table->timestamps();
 
